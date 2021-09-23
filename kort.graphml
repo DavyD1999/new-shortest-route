@@ -635,7 +635,7 @@
       <data key="d9">N8</data>
       <data key="d10">Woestenstraat</data>
       <data key="d11">primary</data>
-      <data key="d12">['70', '50']</data>
+      <data key="d12">['50', '70']</data>
       <data key="d13">False</data>
       <data key="d14">578.0699999999999</data>
       <data key="d16">LINESTRING (2.7464025 50.9260343, 2.7440717 50.9274009, 2.7421032 50.9285296, 2.7408185 50.9292661, 2.7403298 50.9295521)</data>
@@ -798,7 +798,7 @@
     </edge>
     <edge source="658924719" target="658924770" id="0">
       <data key="d8">[654335369, 100051460, 51531334]</data>
-      <data key="d10">['Leeuwerikstraat', 'Krombeekseweg']</data>
+      <data key="d10">['Krombeekseweg', 'Leeuwerikstraat']</data>
       <data key="d11">tertiary</data>
       <data key="d12">['50', '70']</data>
       <data key="d13">False</data>
@@ -852,9 +852,9 @@
     </edge>
     <edge source="658924770" target="658924719" id="0">
       <data key="d8">[654335369, 100051460, 51531334]</data>
-      <data key="d10">['Leeuwerikstraat', 'Krombeekseweg']</data>
+      <data key="d10">['Krombeekseweg', 'Leeuwerikstraat']</data>
       <data key="d11">tertiary</data>
-      <data key="d12">['70', '50']</data>
+      <data key="d12">['50', '70']</data>
       <data key="d13">False</data>
       <data key="d14">870.281</data>
       <data key="d16">LINESTRING (2.6971156 50.8947315, 2.6974524 50.894277, 2.6984313 50.8929329, 2.6985646 50.8927257, 2.6986746 50.8925166, 2.6988036 50.8922686, 2.6988298 50.8921938, 2.6988918 50.8920166, 2.6990713 50.8914773, 2.6996823 50.8895141, 2.6998726 50.8889024, 2.7000601 50.8882993, 2.7002308 50.8877431, 2.70039 50.8872262)</data>
@@ -1292,7 +1292,7 @@
       <data key="d9">N321</data>
       <data key="d10">Eikhoekstraat</data>
       <data key="d11">secondary</data>
-      <data key="d12">['70', '50']</data>
+      <data key="d12">['50', '70']</data>
       <data key="d13">False</data>
       <data key="d14">254.08100000000002</data>
       <data key="d16">LINESTRING (2.7268409 50.9195769, 2.7266628 50.9196578, 2.7262603 50.9198521, 2.7247698 50.9206042, 2.7243673 50.9208077, 2.7240032 50.9209981)</data>
@@ -1441,7 +1441,7 @@
     <edge source="658936309" target="1327892112" id="0">
       <data key="d8">[135771313, 949501763, 51535631]</data>
       <data key="d10">['Molenstraat', 'Woestenstraat']</data>
-      <data key="d11">['primary', 'unclassified']</data>
+      <data key="d11">['unclassified', 'primary']</data>
       <data key="d15">3</data>
       <data key="d13">False</data>
       <data key="d14">921.1880000000001</data>
@@ -1504,7 +1504,7 @@
     </edge>
     <edge source="663210857" target="1676802103" id="0">
       <data key="d8">[52021977, 881149331, 155275997]</data>
-      <data key="d10">['Roggestraat', 'Westvleterendorp']</data>
+      <data key="d10">['Westvleterendorp', 'Roggestraat']</data>
       <data key="d11">unclassified</data>
       <data key="d15">['4.5', '3']</data>
       <data key="d13">False</data>
@@ -1564,7 +1564,7 @@
     </edge>
     <edge source="663210948" target="698807570" id="0">
       <data key="d8">[951037000, 55602233, 418075272]</data>
-      <data key="d10">['Roggestraat', 'Krombekeplein']</data>
+      <data key="d10">['Krombekeplein', 'Roggestraat']</data>
       <data key="d11">['residential', 'unclassified']</data>
       <data key="d13">False</data>
       <data key="d14">1512.4179999999997</data>
@@ -1660,14 +1660,14 @@
       <data key="d8">[420505419, 654336971, 55602220]</data>
       <data key="d10">Bankelindeweg</data>
       <data key="d11">tertiary</data>
-      <data key="d12">['70', '50']</data>
+      <data key="d12">['50', '70']</data>
       <data key="d13">False</data>
       <data key="d14">1503.9169999999997</data>
       <data key="d16">LINESTRING (2.6930203 50.9018528, 2.6928865 50.9020134, 2.6927577 50.9021536, 2.6924083 50.9025381, 2.6920811 50.902877, 2.6914958 50.9035141, 2.6906525 50.9044199, 2.6903559 50.9047541, 2.6901503 50.9050479, 2.689972 50.9053488, 2.6898835 50.905546, 2.6898147 50.905747, 2.6897437 50.905964, 2.6896832 50.9062709, 2.6895758 50.9071345, 2.6895138 50.9076554, 2.6895051 50.9077287, 2.6894985 50.9077842, 2.6894877 50.907875, 2.6893226 50.9092627, 2.6891265 50.9109674, 2.6890237 50.9118089, 2.6889822 50.9121485, 2.6889429 50.9124451, 2.6889421 50.9124513, 2.688933 50.9125198, 2.6888755 50.9130492, 2.6888215 50.9134955, 2.6888082 50.9135065, 2.688796 50.9135147, 2.688716 50.9141339, 2.6887261 50.9141802, 2.6887405 50.9142322, 2.6887101 50.9144754, 2.6886761 50.9147594, 2.6886719 50.9147941, 2.6886631 50.9148274)</data>
     </edge>
     <edge source="698807475" target="698807477" id="0">
       <data key="d8">[418075269, 55602223]</data>
-      <data key="d10">['Kooiaardstraat', 'Coeyaardstraat']</data>
+      <data key="d10">['Coeyaardstraat', 'Kooiaardstraat']</data>
       <data key="d11">unclassified</data>
       <data key="d15">4</data>
       <data key="d13">False</data>
@@ -1703,7 +1703,7 @@
     </edge>
     <edge source="698807477" target="698807475" id="0">
       <data key="d8">[418075269, 55602223]</data>
-      <data key="d10">['Kooiaardstraat', 'Coeyaardstraat']</data>
+      <data key="d10">['Coeyaardstraat', 'Kooiaardstraat']</data>
       <data key="d11">unclassified</data>
       <data key="d15">4</data>
       <data key="d13">False</data>
@@ -1821,7 +1821,7 @@
     </edge>
     <edge source="698807540" target="1676802298" id="0">
       <data key="d8">[155276016, 418075270]</data>
-      <data key="d10">['Nieuwstraat', 'Graaf van Hoornweg']</data>
+      <data key="d10">['Graaf van Hoornweg', 'Nieuwstraat']</data>
       <data key="d11">unclassified</data>
       <data key="d15">3</data>
       <data key="d13">False</data>
@@ -1908,7 +1908,7 @@
     </edge>
     <edge source="698807570" target="663210948" id="0">
       <data key="d8">[418075272, 55602233, 951037000]</data>
-      <data key="d10">['Roggestraat', 'Krombekeplein']</data>
+      <data key="d10">['Krombekeplein', 'Roggestraat']</data>
       <data key="d11">['residential', 'unclassified']</data>
       <data key="d15">3</data>
       <data key="d13">False</data>
@@ -2186,7 +2186,7 @@
     </edge>
     <edge source="705040947" target="1280642392" id="0">
       <data key="d8">[131861552, 162844218]</data>
-      <data key="d10">['Kallestraat', 'Sint-Sixtusstraat']</data>
+      <data key="d10">['Sint-Sixtusstraat', 'Kallestraat']</data>
       <data key="d11">unclassified</data>
       <data key="d15">3</data>
       <data key="d13">False</data>
@@ -2875,7 +2875,7 @@
       <data key="d8">[135771313, 949501763, 51535631]</data>
       <data key="d9">N8</data>
       <data key="d10">['Molenstraat', 'Woestenstraat']</data>
-      <data key="d11">['primary', 'unclassified']</data>
+      <data key="d11">['unclassified', 'primary']</data>
       <data key="d12">50</data>
       <data key="d13">False</data>
       <data key="d14">921.1879999999995</data>
@@ -2927,7 +2927,7 @@
     </edge>
     <edge source="1676802298" target="698807540" id="0">
       <data key="d8">[155276016, 418075270]</data>
-      <data key="d10">['Nieuwstraat', 'Graaf van Hoornweg']</data>
+      <data key="d10">['Graaf van Hoornweg', 'Nieuwstraat']</data>
       <data key="d11">unclassified</data>
       <data key="d15">3</data>
       <data key="d13">False</data>
@@ -3162,7 +3162,7 @@
       <data key="d14">97.46600000000001</data>
       <data key="d16">LINESTRING (2.6867949 50.8850424, 2.6874655 50.8845636, 2.6877493 50.8844074)</data>
     </edge>
-    <data key="d0">2021-09-20 09:47:53</data>
+    <data key="d0">2021-09-20 09:57:14</data>
     <data key="d1">OSMnx 1.1.1</data>
     <data key="d2">epsg:4326</data>
     <data key="d3">True</data>

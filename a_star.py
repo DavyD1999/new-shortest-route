@@ -1,5 +1,6 @@
 """
 DO NOT FORGET TO ACTIVATE THE ENV
+TO DO: replace coordinate functions with the function of the python file
 """
 
 

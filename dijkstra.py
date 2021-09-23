@@ -1,7 +1,5 @@
 import osmnx as ox
-import networkx as nx
 import numpy as np
-import sys
 
 """
 does dijkstra on a certain node
@@ -32,9 +30,9 @@ def dijkstra(id1, graph):
                 pass
             else:
                 try: # it might be a one way street
-                    edge_val = graph_basic[neighbor_node][current_node].values()
+                    edge_val = graph[neighbor_node][current_node].values()
                 except:
-                    edge_val = graph_basic[current_node][neighbor_node].values()
+                    edge_val = graph[current_node][neighbor_node].values()
 
                 for edge in edge_val: # if two roads do connect one chose the shortest one of both
                     if distances[neighbor_node] > (edge.get('length') + distances[current_node]):
@@ -55,6 +53,7 @@ def dijkstra(id1, graph):
             break
         current_node = minimum_key
     return distances
+
 
 dic_dijkstra = dijkstra(3214467066,graph_basic)
 print(dic_dijkstra)
