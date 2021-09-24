@@ -15,7 +15,7 @@ def haversine(couple_1, couple_2): # gets two couples of latitude longitude coup
     argument = np.sin((y1 - y2) / 2) ** 2 + np.sin((x1 - x2) / 2) ** 2 * np.cos(y1) * np.cos(y2)
     return 2 * radius * np.arcsin(np.sqrt(argument))
 
-def distance(node_id1, node_id2, graph):
+def distance(node_id1, node_id2, graph): # calculates the haversine distance 
   y1, x1 = get_coordinates(node_id1, graph)
   y2,x2 = get_coordinates(node_id2, graph)
   return haversine((y1,x1),(y2,x2))
