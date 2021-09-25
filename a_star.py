@@ -1,16 +1,11 @@
 """
 DO NOT FORGET TO ACTIVATE THE ENV
-TO DO: replace coordinate functions with the function of the python file
 """
-
-
 import osmnx as ox
 import numpy as np
 import coordinate_functions as cf
 
-
 graph_basic = ox.io.load_graphml('zwijnlandstraat_6_10km.graphml') # change file name here
-
 
 def precompute_map_haversine_vs_real_distance(graph): # not such a useful function
   actual_distance = dict()

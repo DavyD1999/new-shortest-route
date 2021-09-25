@@ -5,7 +5,7 @@ import numpy as np
 does dijkstra on a certain node
 """
 
-graph_basic = ox.io.load_graphml('zwijnlandstraat_6_10km.graphml') # change file name here
+graph_basic = ox.io.load_graphml('zw6_5km.graphml') # change file name here
 inf = np.inf
 
 def dijkstra(id1, graph):
@@ -55,5 +55,4 @@ def dijkstra(id1, graph):
     return distances
 
 
-dic_dijkstra = dijkstra(3214467066,graph_basic)
-print(dic_dijkstra)
+#dic_dijkstra = dijkstra(3214467066,graph_basic)
