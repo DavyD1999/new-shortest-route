@@ -1,3 +1,7 @@
+"""
+this file has all kinds of functions mainly to help calculate the haversine distance between two nodes in a graph
+"""
+
 import numpy as np
 
 def get_coordinates(node_id, graph):

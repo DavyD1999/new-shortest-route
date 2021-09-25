@@ -2,7 +2,7 @@ import osmnx as ox
 import numpy as np
 
 """
-does dijkstra on a certain node
+does dijkstra on a certain node to all nodes
 """
 
 graph_basic = ox.io.load_graphml('zw6_5km.graphml') # change file name here

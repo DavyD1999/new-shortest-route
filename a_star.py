@@ -1,5 +1,6 @@
 """
 DO NOT FORGET TO ACTIVATE THE ENV
+this file is able to calculate the shortest distance using a star with the haversine distance
 """
 import osmnx as ox
 import numpy as np
