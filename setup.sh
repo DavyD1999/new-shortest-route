@@ -1,7 +1,10 @@
 #!/bin/bash
+# RUN THIS FILE AND THEN RUN ALL THE COUDE FILES USING "source env/bin/activate"
+# don't forget chmod +x
+
 set -x # shows what is being executed
 rm -rf env
-#don't forget chmod +x
+
 
 rm -rf /opt/virtualenvs/python3/lib/python3.8/site-packages/typing.py # only needed temporarily to fix bug in pip and typing pip uninstall typing does not work
 pip uninstall pip --y # dash dash y tells yes to everything
