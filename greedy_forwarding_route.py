@@ -3,7 +3,7 @@ import coordinate_functions as cf
 import osmnx as ox
 import a_star
 
-graph_basic = ox.io.load_graphml('kort.graphml')
+graph_basic = ox.io.load_graphml('rio_de_janeiro_5km_(-22.908333, -43.196388).graphml')
 
 def greedy_forwarding(id1, id2, graph): # id1 is start node id2 is go to node
   inf = np.inf
@@ -33,27 +33,35 @@ def greedy_forwarding(id1, id2, graph): # id1 is start node id2 is go to node
         if edge_length > edge.get('length'):
           edge_length = edge.get('length')
         
-      if cf.distance(current_node, neighbor_node, graph) + edge_length < min_distance:
+      if cf.distance(current_node, neighbor_node, graph) < min_distance:
         node_with_min_distance = neighbor_node
-        min_distance = cf.distance(current_node, neighbor_node, graph) + edge_length
+        min_distance = cf.distance(current_node, neighbor_node, graph)
         
         min_edge_length = edge_length # also save the length of the path
-      distance_travelled += min_edge_length
-      current_node = node_with_min_distance
-      if distance_travelled > 20*start_distance or current_node in visited:
-        
-        return inf;
-      visited.add(current_node) 
+    
+    if min_distance == inf:
+      return inf; # if the minimum distance was not changed
+
+    distance_travelled += min_edge_length
+    current_node = node_with_min_distance
+
+    if distance_travelled > 10*start_distance or current_node in visited:
+      
+      return inf;
+    visited.add(current_node) 
   
   return distance_travelled
 i = 0
-for start_node in graph_basic.nodes():
+
+
+for index, start_node in enumerate(list(graph_basic.nodes())):
+  print(index)
   for node in graph_basic.nodes():
     if start_node != node:
       if greedy_forwarding(node,start_node,graph_basic) != np.inf:
-        print("verhouding:")
-        print(greedy_forwarding(node,start_node,graph_basic)/a_star.A_star(node, start_node, graph_basic))
-        print("a_star distance:")
-        print(a_star.A_star(node, start_node, graph_basic))
+        #print("verhouding:")
+        #print(greedy_forwarding(node,start_node,graph_basic)/a_star.A_star(node, start_node, graph_basic))
+        #print("a_star distance:")
+        #print(a_star.A_star(node, start_node, graph_basic))
         i += 1 
 print(i) # 48 for kort graph with edge lengths
