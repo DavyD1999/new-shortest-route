@@ -7,7 +7,6 @@ graph_basic = ox.io.load_graphml('rio_de_janeiro_5km_(-22.908333, -43.196388).gr
 
 def greedy_forwarding(id1, id2, graph): # id1 is start node id2 is go to node
   inf = np.inf
-  start_distance = cf.distance(id1, id2, graph)
   total_nodes = graph.nodes()
 
   assert id1 in total_nodes and id2 in total_nodes , "node_id is not in the graph"
@@ -20,48 +19,50 @@ def greedy_forwarding(id1, id2, graph): # id1 is start node id2 is go to node
     min_distance = inf
     
     for neighbor_node in graph.neighbors(current_node):
-      # id2 is our go to node
-      try: # it might be a one way street
-        edge_val = graph[neighbor_node][current_node].values()
-      except KeyError:
-        try:
-          edge_val = graph[current_node][neighbor_node].values()
-        except KeyError:
-          pass # no actual path seems to exist 
-      edge_length = inf
-      for edge in edge_val: # if two roads or more roads do connect one chose the shortest one of both
-        if edge_length > edge.get('length'):
-          edge_length = edge.get('length')
         
-      if cf.distance(current_node, neighbor_node, graph) < min_distance:
+      if cf.euclid_distance(current_node, neighbor_node, graph) < min_distance:
         node_with_min_distance = neighbor_node
-        min_distance = cf.distance(current_node, neighbor_node, graph)
-        
-        min_edge_length = edge_length # also save the length of the path
-    
-    if min_distance == inf:
-      return inf; # if the minimum distance was not changed
+        min_distance = cf.euclid_distance(current_node, neighbor_node, graph)
 
-    distance_travelled += min_edge_length
+    if min_distance == inf:
+      return inf 
+    if node_with_min_distance in visited: # can't be together with the above if else could be referenced before assignment
+      return inf
+    try: # it might be a one way street
+      edge_val = graph[node_with_min_distance][current_node].values()
+    except KeyError:
+      try:
+        edge_val = graph[current_node][node_with_min_distance].values()
+      except KeyError:
+        pass # no actual path seems to exist 
+    edge_length = inf
+    for edge in edge_val: # if two roads or more roads do connect one chose the shortest one of both
+      if edge_length > edge.get('length'):
+        edge_length = edge.get('length')
+      
+    distance_travelled += edge_length
     current_node = node_with_min_distance
 
-    if distance_travelled > 10*start_distance or current_node in visited:
-      
-      return inf;
     visited.add(current_node) 
   
   return distance_travelled
-i = 0
 
 
-for index, start_node in enumerate(list(graph_basic.nodes())):
-  print(index)
-  for node in graph_basic.nodes():
-    if start_node != node:
-      if greedy_forwarding(node,start_node,graph_basic) != np.inf:
-        #print("verhouding:")
-        #print(greedy_forwarding(node,start_node,graph_basic)/a_star.A_star(node, start_node, graph_basic))
-        #print("a_star distance:")
-        #print(a_star.A_star(node, start_node, graph_basic))
-        i += 1 
-print(i) # 48 for kort graph with edge lengths
+node_list = list(graph_basic.nodes())
+list_indices_start = np.random.randint(0, len(node_list), size=100000) # first generate random numbers this is quicker
+list_indices_end = np.random.randint(0, len(node_list), size=100000)
+
+result_stretch = np.zeros_like(list_indices_start)
+reached_end_node =  np.zeros_like(list_indices_start)
+
+succes_stories = 0
+
+for i in range(len(list_indices_start)):
+  if list_indices_start[i] != list_indices_end[i]:
+    result = greedy_forwarding(node_list[list_indices_start[i]], node_list[list_indices_end[i]],graph_basic)
+    if result != np.inf:
+      succes_stories += 1
+      print(result/a_star.A_star(node_list[list_indices_start[i]], node_list[list_indices_end[i]],graph_basic))
+
+        
+print(succes_stories)

@@ -21,5 +21,10 @@ def haversine(couple_1, couple_2): # gets two couples of latitude longitude coup
 
 def distance(node_id1, node_id2, graph): # calculates the haversine distance 
   y1, x1 = get_coordinates(node_id1, graph)
-  y2,x2 = get_coordinates(node_id2, graph)
+  y2, x2 = get_coordinates(node_id2, graph)
   return haversine((y1,x1),(y2,x2))
+
+def euclid_distance(node_id1, node_id2, graph):
+  y1, x1 = get_coordinates(node_id1, graph)
+  y2, x2 = get_coordinates(node_id2, graph)
+  return ((x1-x2)**2 + (y1-y2)**2)**(0.5)
