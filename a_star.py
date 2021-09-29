@@ -6,7 +6,7 @@ import osmnx as ox
 import numpy as np
 import coordinate_functions as cf
 
-graph_basic = ox.io.load_graphml('zwijnlandstraat_6_10km.graphml') # change file name here
+graph_basic = ox.io.load_graphml('manhattan_5km_(40.754932, -73.984016).graphml') # change file name here
 
 def precompute_map_haversine_vs_real_distance(graph): # not such a useful function
   actual_distance = dict()
@@ -103,5 +103,6 @@ def A_star(id1, id2, graph): # id1 is start node id2 is go to node
                 open_set.add(neighbor_node) # this will check if already in it so just add it
 
     return inf
-print(A_star(658924891,3214467066,graph_basic))
+
+print(A_star(9121386338,1692433918,graph_basic))
 #precompute_map_haversine_vs_real_distance(graph_basic)    

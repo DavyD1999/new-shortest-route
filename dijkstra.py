@@ -1,6 +1,6 @@
 import osmnx as ox
 import numpy as np
-
+import time
 """
 does dijkstra on a certain node to all nodes
 """
@@ -12,6 +12,7 @@ def dijkstra(id1, graph):
     """
     function that calculates the distance from node_id1 first argument to all other nodes given graph graph
     """
+    
     unvisited_nodes = set(graph.nodes())
     assert id1 in unvisited_nodes, "node_id is not in the graph"
 
@@ -52,7 +53,6 @@ def dijkstra(id1, graph):
             print('some roads have no connection')
             break
         current_node = minimum_key
+
     return distances
 
-
-#dic_dijkstra = dijkstra(3214467066,graph_basic)
