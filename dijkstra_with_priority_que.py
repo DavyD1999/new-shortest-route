@@ -3,6 +3,7 @@ import numpy as np
 from queue import PriorityQueue
 import time
 import dijkstra # import normal dijkstra function to compare
+import node_functions as nf
 """
 does dijkstra on a certain node to all nodes but with priority queue
 """
@@ -35,21 +36,10 @@ def dijkstra_with_priority_queue(id1, graph):
     
     for _ in range(len(graph.nodes())): # we will try every node for the distance
         for neighbor_node in graph.neighbors(current_node): # calculate from every neighbour
-            
-          if neighbor_node == current_node: # implies cycles so don't even bother
-              pass
-          else:
-            try: # it might be a one way street
-                edge_val = graph[neighbor_node][current_node].values()
-            except:
-                edge_val = graph[current_node][neighbor_node].values()
-
-            for edge in edge_val: # if two roads do connect one chose the shortest one of both
-              new_length = edge.get('length') + distances[current_node]
-              if distances[neighbor_node] > new_length:
-                distances[neighbor_node] = new_length
-                distance_queue.put((new_length,neighbor_node)) # add the element again
-                  
+          new_length = (nf.get_edge_length(current_node, neighbor_node, graph) +  distances[current_node])
+          if distances[neighbor_node] > new_length:
+            distances[neighbor_node] = new_length
+            distance_queue.put((new_length,neighbor_node))        
       
         visited_nodes.add(current_node)
         unvisited_nodes.remove(current_node)
@@ -69,15 +59,15 @@ def dijkstra_with_priority_queue(id1, graph):
 start_time = time.time()
 
 for _ in range(100):
-  dijkstra_with_priority_queue(8790497014, graph_basic) # 4,2s
+  dijkstra_with_priority_queue(8790497014, graph_basic) # 8,2
 
-print(time.time()-start_time)
+print(f'{time.time()-start_time} with priority queue')
 
 start_time = time.time()
 for _ in range(100):
-  dijkstra.dijkstra(8790497014, graph_basic) #10,37s for execution time
+  dijkstra.dijkstra(8790497014, graph_basic) #15,1s for execution time
 
-print(time.time()-start_time)
+print(f'{time.time()-start_time} without priority queue')
 
 # check if the right result is there
 

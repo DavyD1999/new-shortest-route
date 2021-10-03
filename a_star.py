@@ -5,6 +5,7 @@ this file is able to calculate the shortest distance using a star with the haver
 import osmnx as ox
 import numpy as np
 import coordinate_functions as cf
+import node_functions as nf
 
 graph_basic = ox.io.load_graphml('manhattan_5km_(40.754932, -73.984016).graphml') # change file name here
 
@@ -62,7 +63,7 @@ def A_star(id1, id2, graph): # id1 is start node id2 is go to node
         g_score[node] = inf
     
     g_score[id1] = 0
-    f_score[id1] = cf.distance(id1, id2, graph)
+    f_score[id1] = cf.euclid_distance(id1, id2, graph)
     empty_set = set()
 
     while open_set != empty_set:
@@ -82,23 +83,14 @@ def A_star(id1, id2, graph): # id1 is start node id2 is go to node
 
         for neighbor_node in graph.neighbors(current_node): 
             
-            try: # it might be a one way street
-                edge_val = graph[neighbor_node][current_node].values()
-            except:
-                edge_val = graph[current_node][neighbor_node].values()
-
-
-            distance = inf 
-            for edge in edge_val: # if two roads or more roads do connect one chose the shortest one of both
-                if distance > edge.get('length'):
-                    distance = edge.get('length')
+            distance = nf.get_edge_length(neighbor_node, current_node, graph)
         
             tentative_g_score = g_score[current_node] + distance
 
             if tentative_g_score < g_score[neighbor_node]:
                 came_from[neighbor_node] = current_node
                 g_score[neighbor_node] = tentative_g_score
-                f_score[neighbor_node] = g_score[neighbor_node] + cf.distance(id1, id2, graph)
+                f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(id1, id2, graph)
 
                 open_set.add(neighbor_node) # this will check if already in it so just add it
 

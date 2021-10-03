@@ -1,13 +1,5 @@
 {
   "files": {
-    "greedy_forwarding_route.py": [
-      {
-        "id": "df19b877-4c21-4bb2-86c0-15993acc532a",
-        "line": 22,
-        "version": 1997,
-        "index": 521
-      }
-    ],
     "main.py": [
       {
         "id": "373d1c6d-77e1-41f3-8a03-27946a5506ba",

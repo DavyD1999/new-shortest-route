@@ -14,9 +14,8 @@ graph_basic = ox.graph.graph_from_address(address, dist=distance, dist_type='bbo
 
 ox.io.save_graphml(graph_basic, f'{output_name}.graphml')
 """
-graph_basic =  ox.graph.graph_from_point((51.209348, 3.224700), dist=5000, dist_type='bbox', network_type='drive', simplify=True, retain_all=False, truncate_by_edge=True, clean_periphery=True, custom_filter=None)
+graph_basic =  ox.graph.graph_from_point((28.644800, 77.216721), dist=5000, dist_type='bbox', network_type='drive', simplify=True, retain_all=False, truncate_by_edge=True, clean_periphery=True, custom_filter=None)
 
 
 
-ox.io.save_graphml(graph_basic, f'brugge_5km_(51.209348, 3.224700).graphml')
-
+ox.io.save_graphml(graph_basic, f'new_dehli_5km_(28.644800, 77.216721).graphml')
