@@ -60,7 +60,7 @@ def speed_comparator(name, number_of_routes): # generates the data for greedy fo
   plt.bar(['networkx dijkstra', 'dijkstra', 'dwpq', 'A*'],np.array([dijkstra_networkx_speed, dijkstra_speed, dwpq_speed, a_star_speed])/number_of_routes)
   plt.title(f'{name} execution time per path')
   plt.xlabel('method')
-  plt.ylabel('execution time per path')
+  plt.ylabel('execution time per path (s)')
   plt.savefig(f'./speed_comparison/{name}_execution_time_per_path.png')
 
 speed_comparator('brugge_5km_(51.209348, 3.224700)', 10**2)

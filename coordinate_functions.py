@@ -24,7 +24,11 @@ def distance(node_id1, node_id2, graph): # calculates the haversine distance
   y2, x2 = get_coordinates(node_id2, graph)
   return haversine((y1,x1),(y2,x2))
 
-def euclid_distance(node_id1, node_id2, graph):
+def euclid_distance(node_id1, node_id2, graph): # DO NOT USE
   y1, x1 = get_coordinates(node_id1, graph)
   y2, x2 = get_coordinates(node_id2, graph)
-  return ((x1-x2)**2 + (y1-y2)**2)**(0.5)
+  deglen = 110.25 # source https://jonisalonen.com/2014/computing-distance-between-coordinates-can-be-simple-and-fast/
+  lat = y1 - y2
+  long = (x1 - x2)
+    
+  return  (lat**2 + long**2)**(0.5) * np.pi / 180 * 6371000

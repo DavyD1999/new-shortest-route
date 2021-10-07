@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import gc
 import greedy_forwarding_route as gf
-
+import greedy_forwarding_with_edgelength as gfwe
 
 """
 generates stretch and arrival percentage histograms for the desired function
