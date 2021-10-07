@@ -7,7 +7,7 @@ import numpy as np
 import coordinate_functions as cf
 import node_functions as nf
 
-graph_basic = ox.io.load_graphml('manhattan_5km_(40.754932, -73.984016).graphml') # change file name here
+# graph_basic = ox.io.load_graphml('manhattan_5km_(40.754932, -73.984016).graphml') # change file name here
 
 def precompute_map_haversine_vs_real_distance(graph): # not such a useful function
   actual_distance = dict()
@@ -96,5 +96,5 @@ def A_star(id1, id2, graph): # id1 is start node id2 is go to node
 
     return inf
 
-print(A_star(9121386338,1692433918,graph_basic))
+# print(A_star(9121386338,1692433918,graph_basic))
 #precompute_map_haversine_vs_real_distance(graph_basic)    

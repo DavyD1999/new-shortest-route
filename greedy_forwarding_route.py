@@ -57,12 +57,12 @@ def data_generator(name, number_of_routes): # generates the data for greedy forw
   reached_end_node =  np.zeros(len(list_indices_start))
   length_path = np.zeros(len(list_indices_start))
   
-  for i in range(number_of_routes):  
-    while True:
+  for i in range(number_of_routes):
+    shortest_distance = 0
+    while shortest_distance == 0:
       try:
         if (list_indices_start[i] != list_indices_end[i]):
           shortest_distance = nx.shortest_path_length(graph_basic, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'length')
-          break
         else:
           list_indices_end[i] = np.random.randint(0, len(node_list))
           list_indices_start[i] = np.random.randint(0, len(node_list)) # change both since dead end might be caused by one of both
