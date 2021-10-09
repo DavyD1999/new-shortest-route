@@ -5,6 +5,7 @@ import networkx as nx
 import gc
 import greedy_forwarding_route as gf
 import greedy_forwarding_with_edgelength as gfwe
+import greedy_then_a_star as gtas
 
 """
 generates stretch and arrival percentage histograms for the desired function
@@ -87,4 +88,9 @@ name_list = ['new_dehli_5km_(28.644800, 77.216721)', 'nairobi_5km_(-1.28333, 36.
 
 
 for name in name_list:
-  data_generator(name, 10**3, gf.greedy_forwarding,'normal_greedy') # 1000 paths for every map
+  data_generator(name, 10**2, gtas.greedy_forwarding_then_a_star,'greedy_then_a_star') # 1000 paths for every map
+  
+  data_generator(name, 10**2, gfwe.greedy_forwarding_with_edge_length,'greedy_with_edge_length')
+  
+  data_generator(name, 10**2, gf.greedy_forwarding,'normal_greedy')
+  print(name)

@@ -26,11 +26,11 @@ def dijkstra(id1, graph):
     current_node = id1
     
     for _ in range(len(graph.nodes())): # we will try every node for the distance
-        for neighbor_node in graph.neighbors(current_node): # calculate from every neighbour
-
-          new_edge_length = nf.get_edge_length(current_node, neighbor_node, graph) + distances[current_node]
-          if distances[neighbor_node] > new_edge_length:
-            distances[neighbor_node] = new_edge_length
+        for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+          
+          new_length = edge_length +  distances[current_node]
+          if distances[neighbor_node] > new_length:
+            distances[neighbor_node] = new_length
             
         
         visited_nodes.add(current_node)
@@ -69,11 +69,12 @@ def dijkstra_to_node(id1, id2, graph):
     
     while id2 not in visited_nodes: # we will try every node for the distance
         
-      for neighbor_node in graph.neighbors(current_node): # calculate from every neighbour
-
-        new_edge_length = nf.get_edge_length(current_node, neighbor_node, graph) + distances[current_node]
-        if distances[neighbor_node] > new_edge_length:
-          distances[neighbor_node] = new_edge_length
+      for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+          
+          new_length = edge_length +  distances[current_node]
+          if distances[neighbor_node] > new_length:
+            distances[neighbor_node] = new_length
+              
           
       visited_nodes.add(current_node)
 

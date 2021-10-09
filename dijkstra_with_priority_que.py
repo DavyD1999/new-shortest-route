@@ -31,11 +31,13 @@ def dijkstra_with_priority_queue(id1, graph):
     current_node = id1
     
     for _ in range(len(graph.nodes())): # we will try every node for the distance
-        for neighbor_node in graph.neighbors(current_node): # calculate from every neighbour
-          new_length = (nf.get_edge_length(current_node, neighbor_node, graph) +  distances[current_node])
+        
+        for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+          
+          new_length = edge_length +  distances[current_node]
           if distances[neighbor_node] > new_length:
             distances[neighbor_node] = new_length
-            distance_queue.put((new_length,neighbor_node))        
+            distance_queue.put((new_length, neighbor_node))        
       
         visited_nodes.add(current_node)
         unvisited_nodes.remove(current_node)
@@ -43,7 +45,6 @@ def dijkstra_with_priority_queue(id1, graph):
         minimum_distance, current_node = distance_queue.get() # auto removes element 
         while current_node in visited_nodes: # very possible since we add element every time
           minimum_distance, current_node = distance_queue.get() # get new element every time
-
 
         if minimum_distance  == inf:
             #print('some roads have no connection')
@@ -96,11 +97,12 @@ def dijkstra_with_priority_queue_to_node(id1, id2, graph):
     current_node = id1
     
     while id2 not in visited_nodes: # we will try every node for the distance
-        for neighbor_node in graph.neighbors(current_node): # calculate from every neighbour
-          new_length = (nf.get_edge_length(current_node, neighbor_node, graph) +  distances[current_node])
+        for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+          
+          new_length = edge_length +  distances[current_node]
           if distances[neighbor_node] > new_length:
             distances[neighbor_node] = new_length
-            distance_queue.put((new_length,neighbor_node))        
+            distance_queue.put((new_length, neighbor_node))           
       
         visited_nodes.add(current_node)
         unvisited_nodes.remove(current_node)

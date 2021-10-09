@@ -1,0 +1,3 @@
+using networkx dijkstra for comparison not good since not same streets used
+
+use weighted a star with a sample of distances

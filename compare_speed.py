@@ -53,8 +53,8 @@ def speed_comparator(name, number_of_routes): # generates the data for greedy fo
     d = a_star.A_star(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic)
     a_star_speed += time.time() - start
 
-    assert abs(c - b) < 10**-2 and abs(c - d) < 10**-2, 'path lengths are not the same' # networkx treats one way streets as one way
-  
+    assert abs(b-c) < 10**-2 and abs(d-c) < 10**-2 and abs(a-c) < 10**-2, f'{c} dwpq and {b} normal dijkstra {d} astar {a} netowrkx'
+    
 
   
   plt.bar(['networkx dijkstra', 'dijkstra', 'dwpq', 'A*'],np.array([dijkstra_networkx_speed, dijkstra_speed, dwpq_speed, a_star_speed])/number_of_routes)
@@ -63,4 +63,4 @@ def speed_comparator(name, number_of_routes): # generates the data for greedy fo
   plt.ylabel('execution time per path (s)')
   plt.savefig(f'./speed_comparison/{name}_execution_time_per_path.png')
 
-speed_comparator('brugge_5km_(51.209348, 3.224700)', 10**2)
+speed_comparator('brugge_5km_(51.209348, 3.224700)', 100)

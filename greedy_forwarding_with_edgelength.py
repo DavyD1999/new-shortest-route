@@ -22,9 +22,10 @@ def greedy_forwarding_with_edge_length(id1, id2, graph): # id1 is start node id2
     
     min_distance = inf
 
-    for neighbor_node in graph.neighbors(current_node):
+    for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+
       if neighbor_node != current_node: # eliminate cycles
-        new_distance = cf.distance(id2, neighbor_node, graph) + nf.get_edge_length(current_node, neighbor_node, graph) # end node is id2 so try to get closer to this end node
+        new_distance = cf.distance(id2, neighbor_node, graph) + edge_length # end node is id2 so try to get closer to this end node
         
         if new_distance < min_distance:
           node_with_min_distance = neighbor_node

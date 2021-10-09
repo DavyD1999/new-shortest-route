@@ -1,5 +1,7 @@
 import numpy as np
 
+inf = np.inf
+
 def get_edge_length(id1, id2, graph):
   """
   function that calculates the shortest edge length ignoring if it is a one way street or not
@@ -14,8 +16,10 @@ def get_edge_length(id1, id2, graph):
   except KeyError:
     pass # no actual path seems to exist 
   
-  edge_length = np.inf
+  edge_length = inf
   for edge in edge_val: # if two roads or more roads do connect one chose the shortest one of both
     if edge_length > edge.get('length'):
       edge_length = edge.get('length')
+  if edge_length == inf:
+    print('das toch geen buur')
   return edge_length
