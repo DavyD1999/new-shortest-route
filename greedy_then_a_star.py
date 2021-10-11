@@ -22,7 +22,7 @@ def greedy_forwarding_then_a_star(id1, id2, graph): # id1 is start node id2 is g
   while (current_node != id2):
     
     min_distance = inf
-    for _, neighbor_node in graph.out_edges(current_node):
+    for _, neighbor_node in graph.edges(current_node):
       if neighbor_node != current_node: # eliminate cycles
         new_distance = cf.distance(id2, neighbor_node, graph) # end node is id2 so try to get closer to this end node
         if new_distance < min_distance:

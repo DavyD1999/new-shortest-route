@@ -32,7 +32,7 @@ def dijkstra_with_priority_queue(id1, graph):
     
     for _ in range(len(graph.nodes())): # we will try every node for the distance
         
-        for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+        for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every neighbour
           
           new_length = edge_length +  distances[current_node]
           if distances[neighbor_node] > new_length:
@@ -54,24 +54,7 @@ def dijkstra_with_priority_queue(id1, graph):
 
 #print(dijkstra_with_priority_queue(9121386338,graph_basic)[1692433918])
 # do timing to compare with dijkstra
-"""
-start_time = time.time()
 
-for _ in range(100):
-  dijkstra_with_priority_queue(8790497014, graph_basic) # 8,2
-
-print(f'{time.time()-start_time} with priority queue')
-
-start_time = time.time()
-for _ in range(100):
-  dijkstra.dijkstra(8790497014, graph_basic) #15,1s for execution time
-
-print(f'{time.time()-start_time} without priority queue')
-
-# check if the right result is there
-
-assert dijkstra.dijkstra(8790497014, graph_basic) == dijkstra_with_priority_queue(8790497014, graph_basic), "solutions don't match"
-"""
 
 def dijkstra_with_priority_queue_to_node(id1, id2, graph):
     """
@@ -97,7 +80,7 @@ def dijkstra_with_priority_queue_to_node(id1, id2, graph):
     current_node = id1
     
     while id2 not in visited_nodes: # we will try every node for the distance
-        for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+        for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every neighbour
           
           new_length = edge_length +  distances[current_node]
           if distances[neighbor_node] > new_length:

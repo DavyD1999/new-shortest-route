@@ -1,17 +1,14 @@
 import numpy as np
-import coordinate_functions as cf
-import node_functions as nf
-import osmnx as ox
-import a_star
 import matplotlib.pyplot as plt
 import networkx as nx
 import gc
+import fix_graph_data as fgd
 
 name_list = ['new_dehli_5km_(28.644800, 77.216721)', 'nairobi_5km_(-1.28333, 36.81667)',  'manhattan_5km_(40.754932, -73.984016)', 'rio_de_janeiro_5km_(-22.908333, -43.196388)', 'brugge_5km_(51.209348, 3.224700)']
 
 
 def get_route_length(name, number_of_routes): # generates the data for the desired function
-  graph_basic = ox.io.load_graphml(f'{name}.graphml')
+  graph_basic = fgd.load_graph(name)
   
   node_list = list(graph_basic.nodes())
   list_indices_start = np.random.randint(0, len(node_list), size=number_of_routes) # first generate random numbers this is quicker
@@ -50,8 +47,6 @@ def get_route_length(name, number_of_routes): # generates the data for the desir
   plt.clf() 
 
 for name in name_list:
-  get_route_length(name, 10**3) # 1000 paths for every map
+  get_route_length(name, 100) # 1000 paths for every map
 
   
-
-

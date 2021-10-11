@@ -1,10 +1,10 @@
-import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-import osmnx as ox
+import fix_graph_data as fgd
 
 def plot_degree_dist(name):
-  graph = ox.io.load_graphml(f'{name}.graphml')
+  graph = fgd.load_graph(name)
+  
   degrees = np.zeros(len(graph.nodes()),dtype=int)
   
   for i, vertex in enumerate(graph.nodes()): # for every node get how many neighbors

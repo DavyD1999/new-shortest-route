@@ -26,7 +26,7 @@ def dijkstra(id1, graph):
     current_node = id1
     
     for _ in range(len(graph.nodes())): # we will try every node for the distance
-        for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+        for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every neighbour
           
           new_length = edge_length +  distances[current_node]
           if distances[neighbor_node] > new_length:
@@ -69,7 +69,7 @@ def dijkstra_to_node(id1, id2, graph):
     
     while id2 not in visited_nodes: # we will try every node for the distance
         
-      for _ , neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): # calculate from every neighbour
+      for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every neighbour
           
           new_length = edge_length +  distances[current_node]
           if distances[neighbor_node] > new_length:

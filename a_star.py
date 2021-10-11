@@ -81,7 +81,7 @@ def A_star(id1, id2, graph): # id1 is start node id2 is go to node
 
         open_set.remove(current_node)
 
-        for _,neighbor_node, edge_length in graph.out_edges(current_node, data = 'length'): #first one is the current node the last argument makes sure we get the length
+        for _,neighbor_node, edge_length in graph.edges(current_node, data = 'length'): #first one is the current node the last argument makes sure we get the length
            
             tentative_g_score = g_score[current_node] + edge_length # sometimes multiple streets will connect the neighbor but this if statement below automatically fixes this
 
