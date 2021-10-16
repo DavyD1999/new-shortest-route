@@ -7,7 +7,11 @@ import osmnx as ox
 import time
 import matplotlib.pyplot as plt
 
-def speed_comparator(name, number_of_routes): # generates the data for greedy forwarding
+"""
+compares the speed of dwpq dijkstra dijkstra of networkx and a star and asserts that they give back the right distance
+"""
+
+def speed_comparator(name, number_of_routes):
   graph_basic = ox.io.load_graphml(f'{name}.graphml')
   
   node_list = list(graph_basic.nodes())
@@ -20,21 +24,12 @@ def speed_comparator(name, number_of_routes): # generates the data for greedy fo
   dwpq_speed =  0
   a_star_speed = 0 
   
-  for i in range(number_of_routes): 
-    test_length = 0. 
-    while test_length == 0:
-      try:
-        if (list_indices_start[i] != list_indices_end[i]):
-          # just confirm there is a path
-          test_length = nx.shortest_path_length(graph_basic, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'length')
-        
-        else:
-          list_indices_end[i] = np.random.randint(0, len(node_list))
-          list_indices_start[i] = np.random.randint(0, len(node_list)) # change both since dead end might be caused by one of both
+  
+  for i in range(number_of_routes):
+  
+    while list_indices_start[i] == list_indices_end[i]: 
+      list_indices_end[i] = np.random.randint(0, len(node_list)) # only change one now since it's a connected graph
       
-      except nx.exception.NetworkXNoPath: # geen pad gevonden
-        list_indices_end[i] = np.random.randint(0, len(node_list))
-        list_indices_start[i] = np.random.randint(0, len(node_list))
 
   
     start = time.time()
@@ -63,4 +58,4 @@ def speed_comparator(name, number_of_routes): # generates the data for greedy fo
   plt.ylabel('execution time per path (s)')
   plt.savefig(f'./speed_comparison/{name}_execution_time_per_path.png')
 
-speed_comparator('brugge_5km_(51.209348, 3.224700)', 100)
+speed_comparator('brugge_5km_(51.209348, 3.224700)', 50)

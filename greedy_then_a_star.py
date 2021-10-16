@@ -18,30 +18,26 @@ def greedy_forwarding_then_a_star(id1, id2, graph): # id1 is start node id2 is g
   visited = set()
   current_node = id1
   distance_travelled = 0
-
+  min_distance = inf
+  min_edge_length = 0
   while (current_node != id2):
-    
-    min_distance = inf
-    for _, neighbor_node in graph.edges(current_node):
+     
+    for _, neighbor_node, edge_length in graph.edges(current_node, data = 'length'):
       if neighbor_node != current_node: # eliminate cycles
         new_distance = cf.distance(id2, neighbor_node, graph) # end node is id2 so try to get closer to this end node
-        if new_distance < min_distance:
+        if new_distance < min_distance: # needs to keep decreasing
           node_with_min_distance = neighbor_node
           min_distance = new_distance
+          min_edge_length = edge_length
 
-    if min_distance == inf:
-      return inf 
-    
-    if node_with_min_distance in visited: # if empty next sequence then already stop here else a star won't even find a path
+    if node_with_min_distance in visited or min_distance == inf: # if empty next sequence then already stop here else a star won't even find a path
       """
       if the node was already visited or the node that will be visited does not seem to have any neighbors
       """
       distance_travelled += a_star.A_star(current_node, id2, graph)
       return distance_travelled
 
-    edge_length = nf.get_edge_length(current_node, node_with_min_distance, graph)
-
-    distance_travelled += edge_length
+    distance_travelled += min_edge_length
     current_node = node_with_min_distance
 
     visited.add(current_node) 

@@ -24,6 +24,10 @@ def distance(node_id1, node_id2, graph): # calculates the haversine distance
   y2, x2 = get_coordinates(node_id2, graph)
   return haversine((y1,x1),(y2,x2))
 
+conv_fac = np.pi / 180
+R = 6371000 # earth radius
+pi_over_4 = np.pi / 4
+
 def euclid_distance(node_id1, node_id2, graph): # DO NOT USE
   y1, x1 = get_coordinates(node_id1, graph)
   y2, x2 = get_coordinates(node_id2, graph)
@@ -31,4 +35,33 @@ def euclid_distance(node_id1, node_id2, graph): # DO NOT USE
   lat = y1 - y2
   long = (x1 - x2)
     
-  return  (lat**2 + long**2)**(0.5) * np.pi / 180 * 6371000
+  return  (lat**2 + long**2)**(0.5) * conv_fac * 6371000
+
+def rpf_distance(current_node_id, go_to_node_id, destination_id, graph):
+  
+  u = projector(get_coordinates(current_node_id, graph))
+  v = projector(get_coordinates(go_to_node_id, graph))
+  d = projector(get_coordinates(destination_id, graph))
+  
+  # calculate cos between ud and uv aka project our goto on the straight line between current and destination
+  c = np.linalg.norm(v-d)
+  a = np.linalg.norm(u-v)
+  b = np.linalg.norm(u-d)
+
+  cos_C = (a**2 + b**2 - c**2) / (2 * b * a)
+  return - a * cos_C # we select on the minimum in our greedy rpf function thus have a minus here on see yujuninfocom09 paper
+  # now use the cosine rule
+  
+
+def projector(tup): # uses mercator projection
+  lat = tup[0]
+  lon = tup[1]
+
+  lat *= conv_fac
+  lon *= conv_fac
+
+  x = R * lon
+  y = R * np.log(np.tan(pi_over_4 + lat / 2))
+
+  return np.array((x, y))
+

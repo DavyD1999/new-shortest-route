@@ -17,19 +17,19 @@ def greedy_forwarding_with_edge_length(id1, id2, graph): # id1 is start node id2
   visited = set()
   current_node = id1
   distance_travelled = 0
-
+  min_distance = inf
+  min_edge_length = 0
   while (current_node != id2):
-    
-    min_distance = inf
 
     for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every neighbour
 
       if neighbor_node != current_node: # eliminate cycles
         new_distance = cf.distance(id2, neighbor_node, graph) + edge_length # end node is id2 so try to get closer to this end node
         
-        if new_distance < min_distance:
+        if new_distance < min_distance: # needs to keep decreasing
           node_with_min_distance = neighbor_node
           min_distance = new_distance
+          min_edge_length = edge_length
 
     if min_distance == inf:
       return inf 
@@ -37,7 +37,7 @@ def greedy_forwarding_with_edge_length(id1, id2, graph): # id1 is start node id2
     if node_with_min_distance in visited: # can't be together with the above if else could be referenced before assignment
       return inf
 
-    distance_travelled += nf.get_edge_length(current_node, node_with_min_distance, graph)
+    distance_travelled += min_edge_length
     current_node = node_with_min_distance
 
     visited.add(current_node) 
