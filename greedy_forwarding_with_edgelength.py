@@ -8,7 +8,7 @@ import networkx as nx
 does greedy forwarding including edge length it stops when a cycle is discovered or no neighbors are found (which is only possible in a directed graph)
 """
 
-def greedy_forwarding_with_edge_length(id1, id2, graph): # id1 is start node id2 is go to node
+def greedy_forwarding_with_edge_length(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node
   inf = np.inf
   total_nodes = graph.nodes()
 
@@ -30,16 +30,19 @@ def greedy_forwarding_with_edge_length(id1, id2, graph): # id1 is start node id2
           node_with_min_distance = neighbor_node
           min_distance = new_distance
           min_edge_length = edge_length
-
-    if min_distance == inf:
-      return inf 
     
-    if node_with_min_distance in visited: # can't be together with the above if else could be referenced before assignment
+    if node_with_min_distance in visited or min_distance == inf: # can't be together with the above if else could be referenced before assignment
+      if ratio_travelled:
+        return inf, cf.distance(id2, current_node, graph) / cf.distance(id2, id1, graph)
+      
       return inf
 
     distance_travelled += min_edge_length
     current_node = node_with_min_distance
 
     visited.add(current_node) 
+  
+  if ratio_travelled:
+    return distance_travelled, 1 # reached the end
   
   return distance_travelled

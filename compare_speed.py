@@ -24,13 +24,10 @@ def speed_comparator(name, number_of_routes):
   dwpq_speed =  0
   a_star_speed = 0 
   
-  
   for i in range(number_of_routes):
   
     while list_indices_start[i] == list_indices_end[i]: 
       list_indices_end[i] = np.random.randint(0, len(node_list)) # only change one now since it's a connected graph
-      
-
   
     start = time.time()
     a = nx.shortest_path_length(graph_basic, node_list[list_indices_start[i]], node_list[list_indices_end[i]], weight='length', method='dijkstra') # happens with dijkstra
@@ -51,7 +48,6 @@ def speed_comparator(name, number_of_routes):
     assert abs(b-c) < 10**-2 and abs(d-c) < 10**-2 and abs(a-c) < 10**-2, f'{c} dwpq and {b} normal dijkstra {d} astar {a} netowrkx'
     
 
-  
   plt.bar(['networkx dijkstra', 'dijkstra', 'dwpq', 'A*'],np.array([dijkstra_networkx_speed, dijkstra_speed, dwpq_speed, a_star_speed])/number_of_routes)
   plt.title(f'{name} execution time per path')
   plt.xlabel('method')

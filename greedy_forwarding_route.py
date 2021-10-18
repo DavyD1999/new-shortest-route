@@ -1,21 +1,22 @@
 import numpy as np
 import coordinate_functions as cf
-import node_functions as nf
+from collections import deque
+from fix_graph_data import load_graph
 import osmnx as ox
 import networkx as nx
-
+import matplotlib
 """
 does normal greedy forwarding it stops when a cycle is discovered or no neighbors are found (which is only possible in a directed graph)
 """
 
-def greedy_forwarding(id1, id2, graph): # id1 is start node id2 is go to node
+def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node
   inf = np.inf
   total_nodes = graph.nodes()
-
+  route = list() # list of nodes which brings us to an end point
   assert id1 in total_nodes and id2 in total_nodes , "node_id is not in the graph"
 
   current_node = id1
-  
+  route.append(current_node)
   distance_travelled = 0
   min_distance = inf
   min_edge_length = 0
@@ -32,9 +33,29 @@ def greedy_forwarding(id1, id2, graph): # id1 is start node id2 is go to node
           min_edge_length = edge_length
 
     if min_distance == inf or current_node == node_with_min_distance:
-      return inf 
+      """
+      matplotlib.use('Agg')
+      routenx = nx.shortest_path(graph, start, end, 'length')
+      
+      print(route)
+
+      fig, _ = ox.plot.plot_graph_routes(graph, [list(route), routenx], route_colors = ['r', 'g'], route_linewidth=1, node_size=0, orig_dest_size=3)
+
+      fig.savefig('testgreedy.png', dpi=500)
+      fig.clf()
+      """
+      if ratio_travelled:
+        return inf, cf.distance(id2, current_node, graph) / cf.distance(id2, id1, graph)
+      
+      return inf
+        
 
     distance_travelled += min_edge_length
     current_node = node_with_min_distance
-
+    route.append(current_node) 
+  
+  if ratio_travelled:
+    return distance_travelled, 1 # reached the end
+  
   return distance_travelled
+

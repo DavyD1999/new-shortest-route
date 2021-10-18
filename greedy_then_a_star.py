@@ -9,7 +9,7 @@ import a_star
 does normal greedy forwarding till a node is already in visited then do a_star
 """
 
-def greedy_forwarding_then_a_star(id1, id2, graph): # id1 is start node id2 is go to node
+def greedy_forwarding_then_a_star(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node
   inf = np.inf
   total_nodes = graph.nodes()
 
@@ -35,11 +35,17 @@ def greedy_forwarding_then_a_star(id1, id2, graph): # id1 is start node id2 is g
       if the node was already visited or the node that will be visited does not seem to have any neighbors
       """
       distance_travelled += a_star.A_star(current_node, id2, graph)
+      if ratio_travelled:
+        return distance_travelled, 1 # reached the end like always for A*
+  
       return distance_travelled
 
     distance_travelled += min_edge_length
     current_node = node_with_min_distance
 
     visited.add(current_node) 
+  
+  if ratio_travelled:
+    return distance_travelled, 1 # reached the end
   
   return distance_travelled
