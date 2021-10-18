@@ -1,6 +1,6 @@
 """
 DO NOT FORGET TO ACTIVATE THE ENV
-this file is able to calculate the shortest distance using a star with the haversine distance
+this file is able to calculate the shortest time using a star with the haversine distance
 """
 import osmnx as ox
 import numpy as np
@@ -8,7 +8,7 @@ import coordinate_functions as cf
 import node_functions as nf
 
 # graph_basic = ox.io.load_graphml('manhattan_5km_(40.754932, -73.984016).graphml') # change file name here
-
+"""
 def precompute_map_haversine_vs_real_distance(graph): # not such a useful function
   actual_distance = dict()
   haversine_distance = dict()
@@ -42,9 +42,9 @@ def precompute_map_haversine_vs_real_distance(graph): # not such a useful functi
   
   print(np.mean(vertical_list))
   print(np.std(vertical_list))
+"""
 
-
-def A_star(id1, id2, graph): # id1 is start node id2 is go to node
+def A_star(id1, id2, graph, min_velocity): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -63,7 +63,7 @@ def A_star(id1, id2, graph): # id1 is start node id2 is go to node
         g_score[node] = inf
     
     g_score[id1] = 0
-    f_score[id1] = cf.euclid_distance(id1, id2, graph)
+    f_score[id1] = cf.euclid_distance(id1, id2, graph) / min_velocity * 3.6 # f score is a lower bound
     empty_set = set()
 
     while open_set != empty_set:
@@ -81,14 +81,14 @@ def A_star(id1, id2, graph): # id1 is start node id2 is go to node
 
         open_set.remove(current_node)
 
-        for _,neighbor_node, edge_length in graph.edges(current_node, data = 'length'): #first one is the current node the last argument makes sure we get the length
+        for _ ,neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'): #first one is the current node the last argument makes sure we get the length
            
-            tentative_g_score = g_score[current_node] + edge_length # sometimes multiple streets will connect the neighbor but this if statement below automatically fixes this
+            tentative_g_score = g_score[current_node] + edge_weight 
 
             if tentative_g_score < g_score[neighbor_node]:
                 came_from[neighbor_node] = current_node
                 g_score[neighbor_node] = tentative_g_score
-                f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(id1, id2, graph)
+                f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(id1, id2, graph) / min_velocity * 3.6 # this will make it a good lower bound
 
                 open_set.add(neighbor_node) # this will check if already in it so just add it
     print("hier")

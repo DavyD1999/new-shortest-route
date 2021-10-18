@@ -9,48 +9,48 @@ inf = np.inf
 
 def dijkstra_with_priority_queue(id1, graph):
     """
-    function that calculates the distance from node_id1 first argument to all other nodes given graph graph with a priority queue
+    function that calculates the time from node_id1 first argument to all other nodes given graph graph with a priority queue
     """
 
     unvisited_nodes = set(graph.nodes())
     assert id1 in unvisited_nodes, "node_id is not in the graph"
     
-    distance_queue = PriorityQueue()
-    distances = dict()
+    time_queue = PriorityQueue()
+    times = dict()
     
     for node_id in unvisited_nodes:
       if node_id != id1:
-        distance_queue.put((inf, node_id))# every element infinite except for the starnode
-        distances[node_id] = inf
+        time_queue.put((inf, node_id))# every element infinite except for the starnode
+        times[node_id] = inf
       else:
-        distance_queue.put((0, id1))
-        distances[id1] = 0 # overwrite distance for our start node
+        time_queue.put((0, id1))
+        times[id1] = 0 # overwrite time for our start node
 
 
     visited_nodes = set()
     current_node = id1
     
-    for _ in range(len(graph.nodes())): # we will try every node for the distance
+    for _ in range(len(graph.nodes())): # we will try every node for the time
         
-        for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every neighbour
+        for _ , neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'): # calculate from every neighbour
           
-          new_length = edge_length +  distances[current_node]
-          if distances[neighbor_node] > new_length:
-            distances[neighbor_node] = new_length
-            distance_queue.put((new_length, neighbor_node))        
+          new_weight = edge_weight +  times[current_node]
+          if times[neighbor_node] > new_weight:
+            times[neighbor_node] = new_weight
+            time_queue.put((new_weight, neighbor_node))        
       
         visited_nodes.add(current_node)
         unvisited_nodes.remove(current_node)
         
-        minimum_distance, current_node = distance_queue.get() # auto removes element 
+        minimum_time, current_node = time_queue.get() # auto removes element 
         while current_node in visited_nodes: # very possible since we add element every time
-          minimum_distance, current_node = distance_queue.get() # get new element every time
+          minimum_time, current_node = time_queue.get() # get new element every time
 
-        if minimum_distance  == inf:
+        if minimum_time  == inf:
             #print('some roads have no connection')
             break
 
-    return distances
+    return times
 
 #print(dijkstra_with_priority_queue(9121386338,graph_basic)[1692433918])
 # do timing to compare with dijkstra
@@ -58,46 +58,46 @@ def dijkstra_with_priority_queue(id1, graph):
 
 def dijkstra_with_priority_queue_to_node(id1, id2, graph):
     """
-    function that calculates the distance from node_id1 first argument to noide_id2 other nodes given graph
+    function that calculates the time from node_id1 first argument to noide_id2 other nodes given graph
     """
 
     unvisited_nodes = set(graph.nodes())
     assert id1 in unvisited_nodes, "node_id is not in the graph"
     
-    distance_queue = PriorityQueue()
-    distances = dict()
+    time_queue = PriorityQueue()
+    times = dict()
     
     for node_id in unvisited_nodes:
       if node_id != id1:
-        distance_queue.put((inf, node_id))# every element infinite except for the starnode
-        distances[node_id] = inf
+        time_queue.put((inf, node_id))# every element infinite except for the starnode
+        times[node_id] = inf
       else:
-        distance_queue.put((0, id1))
-        distances[id1] = 0 # overwrite distance for our start node
+        time_queue.put((0, id1))
+        times[id1] = 0 # overwrite time for our start node
 
 
     visited_nodes = set()
     current_node = id1
     
-    while id2 not in visited_nodes: # we will try every node for the distance
-        for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every neighbour
+    while id2 not in visited_nodes: # we will try every node for the time
+        for _ , neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'): # calculate from every neighbour
           
-          new_length = edge_length +  distances[current_node]
-          if distances[neighbor_node] > new_length:
-            distances[neighbor_node] = new_length
-            distance_queue.put((new_length, neighbor_node))           
+          new_weight = edge_weight +  times[current_node]
+          if times[neighbor_node] > new_weight:
+            times[neighbor_node] = new_weight
+            time_queue.put((new_weight, neighbor_node))           
       
         visited_nodes.add(current_node)
         unvisited_nodes.remove(current_node)
         
-        minimum_distance, current_node = distance_queue.get() # auto removes element 
+        minimum_time, current_node = time_queue.get() # auto removes element 
         while current_node in visited_nodes: # very possible since we add element every time
-          minimum_distance, current_node = distance_queue.get() # get new element every time
+          minimum_time, current_node = time_queue.get() # get new element every time
 
-        if minimum_distance  == inf:
+        if minimum_time  == inf:
             #print('some roads have no connection')
             break
 
-    return distances[id2]
+    return times[id2]
 
 #print(dijkstra_with_priority_queue_to_node(9121386338,1692433918, graph_basic))

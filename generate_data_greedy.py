@@ -5,7 +5,7 @@ import networkx as nx
 from scipy import stats
 import gc
 import greedy_forwarding_route as gf
-import greedy_forwarding_with_edgelength as gfwe
+import greedy_forwarding_with_edgeweight as gfwe
 import greedy_then_a_star as gtas
 import greedy_rpf as grpf
 import fix_graph_data as fgd
@@ -24,7 +24,7 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
 
   result_stretch = np.zeros(len(list_indices_start)) # DO NOT USE LIKE CAUSE IT WOULD CONVERT THEM TO INTS
   reached_end_node =  np.zeros(len(list_indices_start))
-  length_path = np.zeros(len(list_indices_start))
+  weight_path = np.zeros(len(list_indices_start))
 
   for i in range(number_of_routes):
     
@@ -32,16 +32,16 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
       list_indices_end[i] = np.random.randint(0, len(node_list)) # only change one now since it's a connected graph
       
     # calculate the shortest distance once
-    shortest_distance = nx.shortest_path_length(graph_basic, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'length')
-    length_path[i] = shortest_distance
+    shortest_distance = nx.shortest_path_length(graph_basic, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'travel_time')
+    weight_path[i] = shortest_distance
   
-  step_size = 1500
+  step_size = 150 # 150 seconds
   
-  values, base = np.histogram(length_path, bins=np.arange(start=0,stop=max(length_path) + step_size, step=step_size)) # + stepsize makes sure we actually get a last bin too
+  values, base = np.histogram(weight_path, bins=np.arange(start=0,stop=max(weight_path) + step_size, step=step_size)) # + stepsize makes sure we actually get a last bin too
 
-    # values, base = np.histogram(length_path, bins=7) # base gives bin edges and values number in each bin
+    # values, base = np.histogram(weight_path, bins=7) # base gives bin edges and values number in each bin
   base[len(base)-1] = base[len(base)-1] + 0.001 # else digitize will give a wrong index for the last value since this one concludes the bin
-  indices = np.digitize(length_path, base) - 1
+  indices = np.digitize(weight_path, base) - 1
 
   timing_array = np.zeros(len(functions))
 
@@ -50,16 +50,34 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
     reached_end_node =  np.zeros(len(list_indices_start))
     ratio_travelled_list = np.zeros(len(list_indices_start))
     total_time = 0
-    for i in range(number_of_routes): # do the greedy functions
-      start_time = time.time()
-      result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic, ratio_travelled=True) # result like route length of the desired path
-      
-      ratio_travelled_list[i] = ratio_travelled
 
-      if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
-        total_time += time.time() - start_time # only track time if succesful
-        reached_end_node[i] = 1
-        result_stretch[i] = result/length_path[i]
+    if function != gtas.greedy_forwarding_then_a_star: # since the a star function needs an extra argument, the min velocity
+      for i in range(number_of_routes): # do the greedy functions
+        start_time = time.time()
+
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic ,ratio_travelled=True) # result like route weight of the desired path
+        
+        ratio_travelled_list[i] = ratio_travelled
+
+        if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
+          total_time += time.time() - start_time # only track time if succesful
+          reached_end_node[i] = 1
+          result_stretch[i] = result/weight_path[i]
+    
+    else: # for the a star function
+      min_velocity = fgd.get_min_velocity(graph_basic)
+
+      for i in range(number_of_routes): # do the greedy functions
+        start_time = time.time()
+
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic, min_velocity=min_velocity, ratio_travelled=True) # result like route weight of the desired path
+        
+        ratio_travelled_list[i] = ratio_travelled
+
+        if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
+          total_time += time.time() - start_time # only track time if succesful
+          reached_end_node[i] = 1
+          result_stretch[i] = result/weight_path[i]
 
     arrived = np.zeros(len(values))
     average_stretch = np.zeros(len(values))
@@ -75,7 +93,7 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
     for j in range(len(average_stretch)):
       if arrived[j] != 0:
         average_stretch[j] /= arrived[j]   # to actually be an average we still need to devide by the number in each bin that arrived  
-                                           # this is quite a lengthy way of doing it 
+                                           # this is quite a weighty way of doing it 
 
     timing_array[x] = total_time / sum(arrived)
 
@@ -108,9 +126,9 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
 
     arrived_percentage = arrived / values
 
-    # the below plot will tell us which percentage of a route of a certain binned length will arrive
+    # the below plot will tell us which percentage of a route of a certain binned weight will arrive
     plt.hist(base[:-1], base, weights=arrived_percentage) 
-    plt.xlabel('shortest path length (m)')
+    plt.xlabel('fastest path time (s)')
     plt.ylabel('arrival ratio')
     plt.title(f'{name} arrival ratio')
     plt.savefig(f'./{foldername[x]}/{name}_percentage_arrived.png')
@@ -119,20 +137,16 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
     # average stretch per bin 
     plt.errorbar(base[:-1] + step_size/2, average_stretch, yerr=standard_dev_on_mean_stretch) # the :-1 because we only plot the middle and end value + half is outside our plotting region
     # +/2 because we want centered at center of bin
-    plt.xlabel('shortest path length (m)')
+    plt.xlabel('fastest path time (s)')
     plt.ylabel('average stretch')
     plt.ylim(bottom=0)
     plt.title(f'{name} average stretch')
     plt.savefig(f'./{foldername[x]}/{name}_average_stretch.png')
     plt.clf() 
-
-    print(n)
-    print(average_ratio_travelled)
-    print(standard_dev_on_mean_ratio_travelled)
     
     plt.errorbar(base[:-1] + step_size/2, average_ratio_travelled, yerr=standard_dev_on_mean_ratio_travelled) # the :-1 because we only plot the middle and end value + half is outside our plotting region
     # +/2 because we want centered at center of bin
-    plt.xlabel('shortest path length (m)')
+    plt.xlabel('fastest path time (s)')
     plt.ylabel('ratio travelled')
     plt.ylim(bottom=0)
     plt.title(f'{name} ratio travelled')
@@ -149,12 +163,11 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
   
 name_list = ['new_dehli_5km_(28.644800, 77.216721)', 'nairobi_5km_(-1.28333, 36.81667)',  'manhattan_5km_(40.754932, -73.984016)', 'rio_de_janeiro_5km_(-22.908333, -43.196388)', 'brugge_5km_(51.209348, 3.224700)']
 
-functions = [gfwe.greedy_forwarding_with_edge_length, gtas.greedy_forwarding_then_a_star, gf.greedy_forwarding, grpf.greedy_forwarding_rpf]
+functions = [gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star, gf.greedy_forwarding, grpf.greedy_forwarding_rpf]
 
-foldernames = ['greedy_with_edge_length','greedy_then_a_star', 'normal_greedy', 'greedy_rpf']
+foldernames = ['greedy_with_edge_weight','greedy_then_a_star', 'normal_greedy', 'greedy_rpf']
 
 for name in name_list:
-  # 1000 paths for every map
   
   data_generator(name, 500, functions, foldernames)
   print(name)

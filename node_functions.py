@@ -1,11 +1,10 @@
 import numpy as np
 
 inf = np.inf
-
+# THIS FILE IS  DEPRECATED DO NOT USE 
+"""
 def get_edge_length(id1, id2, graph):
-  """
-  function that calculates the shortest edge length ignoring if it is a one way street or not
-  """
+  
   edge_val = list()
   try: # it might be a one way street
     edge_val += list(graph[id1][id2].values())
@@ -23,3 +22,5 @@ def get_edge_length(id1, id2, graph):
   if edge_length == inf:
     print('das toch geen buur')
   return edge_length
+
+"""

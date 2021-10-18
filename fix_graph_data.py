@@ -25,13 +25,14 @@ def load_graph(name):
     if len(biggest_component[u][v]) > 1:
       min_travel_time = np.inf
       saved_key = np.inf # will be out of bounds
-      for key in biggest_component[u][v]:
+      for key in biggest_component[u][v]: # gives dict of all edges
         if biggest_component[u][v][key]['travel_time'] < min_travel_time:
           if min_travel_time != np.inf:
             try:
               to_return.remove_edge(u, v, key=saved_key)
             except:
               pass
+          
           min_travel_time = biggest_component[u][v][key]['travel_time']
           saved_key = key
         else:
@@ -41,7 +42,10 @@ def load_graph(name):
             pass
 
   print(f'{time.time() - start_time} gedaan')
+  to_return = nx.Graph(to_return) # make it an actual graph so the edges aren't dicts with the number of the edge anymore
   
   return to_return 
 
-load_graph('brugge_5km_(51.209348, 3.224700)')
+#load_graph('brugge_5km_(51.209348, 3.224700)')
+def get_min_velocity(graph):
+  return min(np.array(list(graph.edges(data = 'speed_kph')), ndmin=2)[:,2])

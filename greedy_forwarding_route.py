@@ -17,25 +17,25 @@ def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start no
 
   current_node = id1
   route.append(current_node)
-  distance_travelled = 0
+  sec_travelled = 0
   min_distance = inf
-  min_edge_length = 0
+  min_edge_weight = 0
 
   while (current_node != id2):
     
     # min_distance will keep decreasing like we want if it doesn't decrease it will keep the same node with min distance and thus greedy forwarding will fail
-    for _ , neighbor_node, edge_length in graph.edges(current_node, data = 'length'): # calculate from every out
+    for _ , neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'): # calculate from every out
       if neighbor_node != current_node: # eliminate cycles
         new_distance = cf.distance(id2, neighbor_node, graph) # end node is id2 so try to get closer to this end node
         if new_distance < min_distance:
           node_with_min_distance = neighbor_node
           min_distance = new_distance
-          min_edge_length = edge_length
+          min_edge_weight = edge_weight
 
     if min_distance == inf or current_node == node_with_min_distance:
       """
       matplotlib.use('Agg')
-      routenx = nx.shortest_path(graph, start, end, 'length')
+      routenx = nx.shortest_path(graph, start, end, 'travel_time')
       
       print(route)
 
@@ -50,12 +50,12 @@ def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start no
       return inf
         
 
-    distance_travelled += min_edge_length
+    sec_travelled += min_edge_weight
     current_node = node_with_min_distance
     route.append(current_node) 
   
   if ratio_travelled:
-    return distance_travelled, 1 # reached the end
+    return sec_travelled, 1 # reached the end
   
-  return distance_travelled
+  return sec_travelled
 
