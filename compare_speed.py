@@ -6,7 +6,7 @@ import a_star
 import osmnx as ox
 import time
 import matplotlib.pyplot as plt
-from fix_graph_data import load_graph, get_min_velocity
+from fix_graph_data import load_graph, get_max_velocity
 """
 compares the speed of dwpq dijkstra dijkstra of networkx and a star and asserts that they give back the right distance
 """
@@ -14,7 +14,7 @@ compares the speed of dwpq dijkstra dijkstra of networkx and a star and asserts 
 def speed_comparator(name, number_of_routes):
   graph_basic = load_graph(name)
   
-  min_velocity = get_min_velocity(graph_basic) # gets the min velocity of all edges, useful for A*
+  max_velocity = get_max_velocity(graph_basic) # gets the min velocity of all edges, useful for A*
   node_list = list(graph_basic.nodes())
   
   list_indices_start = np.random.randint(0, len(node_list), size=number_of_routes) # first generate random numbers this is quicker
@@ -43,7 +43,7 @@ def speed_comparator(name, number_of_routes):
     dwpq_speed += time.time() - start
     
     start = time.time()
-    d = a_star.A_star(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic, min_velocity)
+    d = a_star.A_star(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic, max_velocity)
     a_star_speed += time.time() - start
 
     assert abs(b-c) < 10**-2 and abs(d-c) < 10**-2 and abs(a-c) < 10**-2, f'{c} dwpq and {b} normal dijkstra {d} astar {a} netowrkx'

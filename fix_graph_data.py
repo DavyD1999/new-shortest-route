@@ -22,9 +22,15 @@ def load_graph(name):
   
   # go over every edge and delte the ones with higher travel times than edges with the same start and destination
   for u, v in biggest_component.edges():
+    if u == v:
+      try:
+        to_return.remove_edge(u, v)
+      except:
+        pass
     if len(biggest_component[u][v]) > 1:
       min_travel_time = np.inf
       saved_key = np.inf # will be out of bounds
+      
       for key in biggest_component[u][v]: # gives dict of all edges
         if biggest_component[u][v][key]['travel_time'] < min_travel_time:
           if min_travel_time != np.inf:
@@ -47,5 +53,6 @@ def load_graph(name):
   return to_return 
 
 #load_graph('brugge_5km_(51.209348, 3.224700)')
-def get_min_velocity(graph):
-  return min(np.array(list(graph.edges(data = 'speed_kph')), ndmin=2)[:,2])
+def get_max_velocity(graph):
+  return max(np.array(list(graph.edges(data = 'speed_kph')), ndmin=2)[:,2])
+

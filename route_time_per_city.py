@@ -13,7 +13,6 @@ def get_route_weight(name, number_of_routes): # generates the data for the desir
   list_indices_start = np.random.randint(0, len(node_list), size=number_of_routes) # first generate random numbers this is quicker
   list_indices_end = np.random.randint(0, len(node_list), size=number_of_routes)
 
- 
   weight_path = np.zeros(len(list_indices_start))
   
   for i in range(number_of_routes):
@@ -38,6 +37,6 @@ def get_route_weight(name, number_of_routes): # generates the data for the desir
   print('done') 
 
 for name in name_list:
-  get_route_weight(name, 500) # 1000 paths for every map
+  get_route_weight(name, 2000) 
 
   

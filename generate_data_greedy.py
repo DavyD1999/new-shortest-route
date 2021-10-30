@@ -2,14 +2,13 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 import networkx as nx
-from scipy import stats
-import gc
 import greedy_forwarding_route as gf
 import greedy_forwarding_with_edgeweight as gfwe
 import greedy_then_a_star as gtas
 import greedy_rpf as grpf
 import fix_graph_data as fgd
-
+import hyperbolic_routing as hr
+import hyperbolic_embedder as he
 """
 generates stretch and arrival percentage histograms for the desired function
 """
@@ -51,11 +50,31 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
     ratio_travelled_list = np.zeros(len(list_indices_start))
     total_time = 0
 
-    if function != gtas.greedy_forwarding_then_a_star: # since the a star function needs an extra argument, the min velocity
+    if function == hr.hyperbolic_greedy_forwarding: # since the a star function needs an extra argument, the min velocity
+      
+      min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph_basic, weight='travel_time')
+      node_dict = he.hyperbolic_embed(min_tree, scaling_factor=0.1)
+
+      for i in range(number_of_routes):  # do the greedy functions
+        start_time = time.time()
+
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]],
+                                                min_tree, node_dict,
+                                                ratio_travelled=True)  # result like route weight of the desired path
+        ratio_travelled_list[i] = ratio_travelled
+
+        if result != np.inf:  # only calculate how long the path was once one was found with greedy forwarding  else takes so long
+            total_time += time.time() - start_time  # only track time if succesful
+            reached_end_node[i] = 1
+            result_stretch[i] = result / weight_path[i]
+
+    elif function == gtas.greedy_forwarding_then_a_star:
+      max_velocity = fgd.get_max_velocity(graph_basic)
+
       for i in range(number_of_routes): # do the greedy functions
         start_time = time.time()
 
-        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic ,ratio_travelled=True) # result like route weight of the desired path
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic, max_velocity=max_velocity, ratio_travelled=True) # result like route weight of the desired path
         
         ratio_travelled_list[i] = ratio_travelled
 
@@ -65,12 +84,10 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
           result_stretch[i] = result/weight_path[i]
     
     else: # for the a star function
-      min_velocity = fgd.get_min_velocity(graph_basic)
-
       for i in range(number_of_routes): # do the greedy functions
         start_time = time.time()
 
-        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic, min_velocity=min_velocity, ratio_travelled=True) # result like route weight of the desired path
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic ,ratio_travelled=True) # result like route weight of the desired path
         
         ratio_travelled_list[i] = ratio_travelled
 
@@ -163,10 +180,14 @@ def data_generator(name, number_of_routes, functions, foldername): # generates t
   
 name_list = ['new_dehli_5km_(28.644800, 77.216721)', 'nairobi_5km_(-1.28333, 36.81667)',  'manhattan_5km_(40.754932, -73.984016)', 'rio_de_janeiro_5km_(-22.908333, -43.196388)', 'brugge_5km_(51.209348, 3.224700)']
 
-functions = [gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star, gf.greedy_forwarding, grpf.greedy_forwarding_rpf]
+#functions = [gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star, gf.greedy_forwarding, grpf.greedy_forwarding_rpf]
 
-foldernames = ['greedy_with_edge_weight','greedy_then_a_star', 'normal_greedy', 'greedy_rpf']
+#foldernames = ['greedy_with_edge_weight','greedy_then_a_star', 'normal_greedy', 'greedy_rpf']
+functions = [hr.hyperbolic_greedy_forwarding]
+foldernames = ['greedy_hyperbolic']
 
+#functions = [gtas.greedy_forwarding_then_a_star]
+#foldernames = ['greedy_then_a_star']
 for name in name_list:
   
   data_generator(name, 500, functions, foldernames)

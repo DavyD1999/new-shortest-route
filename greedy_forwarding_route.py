@@ -1,10 +1,5 @@
 import numpy as np
 import coordinate_functions as cf
-from collections import deque
-from fix_graph_data import load_graph
-import osmnx as ox
-import networkx as nx
-import matplotlib
 """
 does normal greedy forwarding it stops when a cycle is discovered or no neighbors are found (which is only possible in a directed graph)
 """

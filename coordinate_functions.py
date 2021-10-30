@@ -3,6 +3,7 @@ this file has all kinds of functions mainly to help calculate the haversine dist
 """
 
 import numpy as np
+import hyperbolic_embedder as he # just so i can use the transformation function
 
 def get_coordinates(node_id, graph):
     coordinate = graph.nodes[node_id]
@@ -65,3 +66,12 @@ def projector(tup): # uses mercator projection
 
   return np.array((x, y))
 
+def distance_hyperbolic(z1, z2):
+
+   #dis1 = 2*np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) # this definition given in cambridge geometry and topology is wrong by a factor of two so use the one in the paper https://arxiv.org/pdf/1804.03329.pdf
+    z2_new = he.transformation(z1, z2) # will take a bit longer
+    z2_new = abs(z2_new)
+    dis2 = np.arccosh(1 + 2* z2_new**2/(1-z2_new**2))
+    assert  abs(2*np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) - dis2)<10**-5 # extra check on the distance
+    return dis2
+	#return np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) # p.368 Geometry SECOND EDITION D AV I D A . B R A N N A N M AT T H E W F. E S P L E N J E R E M Y J . G R AY
