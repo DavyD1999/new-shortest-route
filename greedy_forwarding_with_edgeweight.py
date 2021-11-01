@@ -32,7 +32,7 @@ def greedy_forwarding_with_edge_weight(id1, id2, graph, ratio_travelled=False): 
     
     if node_with_min_distance in visited or min_distance == inf: # can't be together with the above if else could be referenced before assignment
       if ratio_travelled:
-        return inf, cf.distance(id2, current_node, graph) / cf.distance(id2, id1, graph)
+        return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
       
       return inf
 

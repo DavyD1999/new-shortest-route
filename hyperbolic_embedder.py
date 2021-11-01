@@ -4,6 +4,7 @@ import networkx as nx
 import fix_graph_data as fgd
 import queue
 import matplotlib.pyplot as plt
+import cmath
 """
 calculates a hyperbolic embedding for a undirected graph based on it's travel time
 """
@@ -42,7 +43,7 @@ print(inverse_transformation(a,b)) # with this old a or new new a it will map b 
 """ 
 pi = np.pi
 
-def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, degree, min_tree, tau_func, start=False): # from arxiv: 1804.03329, # coordinates is numpy array of two coordinates
+def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, tau_func, start=False): # from arxiv: 1804.03329, # coordinates is numpy array of two coordinates
 	
 	nodes_added = set()
 	degree_dos =  len(list(min_tree.neighbors(node_id)))
@@ -52,10 +53,15 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, degree, min
 		came_from[node_id] = parent_id_of_node # this should be parent==child if not something is wrong
 		
 		for child in min_tree.neighbors(node_id):
-			node_dict[child] = complex(tau_func * np.cos(theta + 2 * pi * k/ degree_dos), tau_func * np.sin(theta + 2 * pi * k/ degree_dos))
+			new_val  = complex(tau_func * np.cos(theta + 2 * pi * k/ degree_dos), tau_func * np.sin(theta + 2 * pi * k/ degree_dos))
+			node_dict[child] = new_val
+			# print(abs(2*np.arctanh(abs((new_val)/(1))))) # check to look if right distance embedded
 			came_from[child] = node_id # the child of the node is now embeded and we want to remember te structure since we'll need it later to embed the children of the newly embedded node
 			nodes_added.add(child)
+			
 			k += 1
+		print(degree_dos)
+		print('check hierboven of dit klopt')
 		
 		return node_dict, came_from, nodes_added
 
@@ -63,7 +69,7 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, degree, min
 	z_parent = node_dict[parent_id_of_node]
 	z_parent_new = transformation(z_node, z_parent)
 	theta = np.angle(z_parent_new) 
-	
+
 	k = 1
 
 	for child in min_tree.neighbors(node_id):
@@ -71,16 +77,23 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, degree, min
 		if child not in node_dict: # could be already embedded if parent 
 			
 			z_child = complex(tau_func * np.cos(theta + 2 * pi * k/ degree_dos), tau_func * np.sin(theta + 2 * pi * k/ degree_dos))
-			node_dict[child] = inverse_transformation(z_node, z_child)
+			
+			inv_transform_child = inverse_transformation(z_node, z_child)
+			assert abs(inv_transform_child) < 1 # needs to be in poincare disk
+			# print(2*np.arctanh(abs((z_node-inv_transform_child)/(1-z_node.conjugate()*inv_transform_child))))
+			# de lijn hierboven vertelt ons idd dat de punten geembed zijn met een afstand van de scaling factor tot de node in kwestie
+			node_dict[child] = inv_transform_child
 			came_from[child] = node_id
 			nodes_added.add(child)		
 			k += 1
 			
+	print(degree_dos)
+	print('kijk hierboven')
 	
 	return node_dict, came_from, nodes_added
 
 
-def hyperbolic_embed(min_tree, scaling_factor=0.1): # voor verder zie http://math.haifa.ac.il/ROVENSKI/B2.pdf p. 368
+def hyperbolic_embed(min_tree, scaling_factor=0.01): # voor verder zie http://math.haifa.ac.il/ROVENSKI/B2.pdf p. 368
 	
 	# dees klopt
 	#current_node = list(min_tree.nodes())[0]
@@ -92,7 +105,7 @@ def hyperbolic_embed(min_tree, scaling_factor=0.1): # voor verder zie http://mat
 	tau_func = (np.exp(scaling_factor) - 1) / (np.exp(scaling_factor) + 1) # for scaling
 
 	node_dict[current_node] = complex(0, 0) # the start node
-	node_dict, came_from, nodes_added = sarkar_formula(current_node, current_node, node_dict, came_from, max_degree, min_tree, tau_func, start=True)
+	node_dict, came_from, nodes_added = sarkar_formula(current_node, current_node, node_dict, came_from, min_tree, tau_func, start=True)
 	
 	to_visit = queue.Queue() # FIFO queue
 	#list(map(to_visit.put, came_from.keys())) # puts all the new nodes at the back of the queue
@@ -101,7 +114,7 @@ def hyperbolic_embed(min_tree, scaling_factor=0.1): # voor verder zie http://mat
 	
 	while not to_visit.empty(): # while not empty	
 		current_node = to_visit.get(0)
-		node_dict, came_from, nodes_added = sarkar_formula(current_node, came_from[current_node], node_dict, came_from, max_degree, min_tree, tau_func, start=False)	
+		node_dict, came_from, nodes_added = sarkar_formula(current_node, came_from[current_node], node_dict, came_from, min_tree, tau_func, start=False)	
 
 		for el in nodes_added:
 			to_visit.put(el)

@@ -40,7 +40,7 @@ def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start no
       fig.clf()
       """
       if ratio_travelled:
-        return inf, cf.distance(id2, current_node, graph) / cf.distance(id2, id1, graph)
+        return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
       
       return inf
         
