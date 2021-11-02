@@ -6,7 +6,7 @@ import networkx as nx
 import a_star
 
 """
-does normal greedy forwarding till a node is already in visited then do a_star
+does normal greedy forwarding till not getting closer then do a star
 """
 
 def greedy_forwarding_then_a_star(id1, id2, graph, max_velocity, ratio_travelled=False): # id1 is start node id2 is go to node

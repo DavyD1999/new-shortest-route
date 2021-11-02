@@ -3,16 +3,21 @@ import dijkstra_with_priority_que as dwpq
 import networkx as nx
 import numpy as np
 import a_star
-import osmnx as ox
+
 import time
 import matplotlib.pyplot as plt
-from fix_graph_data import load_graph, get_max_velocity
+from fix_graph_data import get_max_velocity
+import matplotlib as mpl
+
+mpl.style.use('bmh')
+np.random.seed(42)
+
 """
 compares the speed of dwpq dijkstra dijkstra of networkx and a star and asserts that they give back the right distance
 """
 
 def speed_comparator(name, number_of_routes):
-  graph_basic = load_graph(name)
+  graph_basic = nx.read_gpickle(f'./graph_pickle/{name}.gpickle')
   
   max_velocity = get_max_velocity(graph_basic) # gets the min velocity of all edges, useful for A*
   node_list = list(graph_basic.nodes())
@@ -55,4 +60,4 @@ def speed_comparator(name, number_of_routes):
   plt.ylabel('execution time per path (s)')
   plt.savefig(f'./speed_comparison/{name}_execution_time_per_path.png')
 
-speed_comparator('brugge_5km_(51.209348, 3.224700)', 50)
+speed_comparator('Brugge', 50)

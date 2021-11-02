@@ -21,7 +21,7 @@ def hyperbolic_greedy_forwarding(id1, id2, min_tree, node_dict, ratio_travelled=
     
     for neighbor_node in min_tree.neighbors(current_node): # calculate from every out
 		
-       new_distance = cf.distance_hyperbolic(node_dict[neighbor_node], node_dict[id2]) # end node is id2 so try to get closer to this end node
+       new_distance = cf.distance_hyperbolic(node_dict[neighbor_node], node_dict[id2]) # end node is id2 so try to get closer to this end node, in contrary to other functions here give coordinates
        #print(f'{new_distance} dit is een voorstel afstand' )
        if new_distance < min_distance:
         

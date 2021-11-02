@@ -66,7 +66,7 @@ def projector(tup): # uses mercator projection
 
   return np.array((x, y))
 
-def distance_hyperbolic(z1, z2):
+def distance_hyperbolic(z1, z2): # give two coordinates here
 
    #dis1 = 2*np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) # this definition given in cambridge geometry and topology is wrong by a factor of two so use the one in the paper https://arxiv.org/pdf/1804.03329.pdf
     z2_new = he.transformation(z1, z2) # will take a bit longer
@@ -75,3 +75,9 @@ def distance_hyperbolic(z1, z2):
     assert  abs(2*np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) - dis2)<10**-5 # extra check on the distance
     return dis2
 	#return np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) # p.368 Geometry SECOND EDITION D AV I D A . B R A N N A N M AT T H E W F. E S P L E N J E R E M Y J . G R AY
+
+def distance_manhattan(node_id1, node_id2, graph):
+    y1, x1 = get_coordinates(node_id1, graph)
+    y2, x2 = get_coordinates(node_id2, graph)
+    
+    return abs(y1-y2) + abs(x1-x2)

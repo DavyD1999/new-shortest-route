@@ -9,27 +9,43 @@ import greedy_rpf as grpf
 import fix_graph_data as fgd
 import hyperbolic_routing as hr
 import hyperbolic_embedder as he
+import greedy_manhattan as gm
+
 import stratified_sampling as ss
+import matplotlib as mpl
+
+mpl.style.use('bmh')
+np.random.seed(42)
 
 """
 generates stretch and arrival percentage histograms for the desired function
 """
-np.random.seed(42)
 
 def data_generator(name, functions, foldername, number_of_routes_pre_compute=80, step_size=150, amount_of_samples_per_bin=50): # generates the data for the desired function
-  
-  graph_basic = fgd.load_graph(name)
-  node_list = list(graph_basic.nodes())
+  abc = time.time()
 
-  weight_path, list_indices_start, list_indices_end = ss.stratified_sampling(amount_of_samples_per_bin, number_of_routes_pre_compute, step_size, node_list, graph_basic)
+  graph = nx.read_gpickle(f'./graph_pickle/{name}.gpickle')
+
+  print(time.time()-abc)
+  node_list = list(graph.nodes())
+
+  weight_path, list_indices_start, list_indices_end = ss.stratified_sampling(amount_of_samples_per_bin, number_of_routes_pre_compute, step_size, node_list, graph)
 
   result_stretch = np.zeros(len(list_indices_start)) # DO NOT USE LIKE CAUSE IT WOULD CONVERT THEM TO INTS
   reached_end_node =  np.zeros(len(list_indices_start))  
   
   values, base = np.histogram(weight_path, bins=np.arange(start=0,stop=max(weight_path) + step_size, step=step_size)) # + stepsize makes sure we actually get a last bin too
-
+  
     # values, base = np.histogram(weight_path, bins=7) # base gives bin edges and values number in each bin
   base[len(base)-1] = base[len(base)-1] + 0.001 # else digitize will give a wrong index for the last value since this one concludes the bin
+  plt.hist(weight_path, bins=base)
+  plt.xlabel('travel time (s)')
+  plt.ylabel('number of paths')
+  plt.title(f'{name} weight of paths')
+  plt.savefig('./stratified_sampling_histogram.png')
+ 
+  plt.clf()	
+
   indices = np.digitize(weight_path, base) - 1
 
   timing_array = np.zeros(len(functions))
@@ -44,7 +60,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
 
     if function == hr.hyperbolic_greedy_forwarding: # since the a star function needs an extra argument, the min velocity
       
-      min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph_basic, weight='travel_time')
+      min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph, weight='travel_time')
       node_dict = he.hyperbolic_embed(min_tree)
 
       for i in range(number_of_routes):  # do the greedy functions
@@ -61,12 +77,12 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
             result_stretch[i] = result / weight_path[i]
 
     elif function == gtas.greedy_forwarding_then_a_star:
-      max_velocity = fgd.get_max_velocity(graph_basic)
+      max_velocity = fgd.get_max_velocity(graph)
 
       for i in range(number_of_routes): # do the greedy functions
         start_time = time.time()
 
-        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic, max_velocity=max_velocity, ratio_travelled=True) # result like route weight of the desired path
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, max_velocity=max_velocity, ratio_travelled=True) # result like route weight of the desired path
         
         ratio_travelled_list[i] = ratio_travelled
 
@@ -79,7 +95,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
       for i in range(number_of_routes): # do the greedy functions
         start_time = time.time()
 
-        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_basic ,ratio_travelled=True) # result like route weight of the desired path
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph ,ratio_travelled=True) # result like route weight of the desired path
         
         ratio_travelled_list[i] = ratio_travelled
 
@@ -164,17 +180,19 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
   
   # generate timing plot
   plt.bar(foldernames, timing_array)
+  x = np.arange(len(foldernames))
+  plt.xticks(x, foldernames, fontsize='10', rotation=-35)
   plt.title(f'{name} execution time per succesful path')
-  plt.xlabel('method')
   plt.ylabel('execution time per path (s)')
-  plt.savefig(f'./speed_comparison/{name}greedy_execution_time_per_path.png')
+  plt.savefig(f'./speed_comparison/{name} greedy_execution_time_per_path.png', bbox_inches='tight')
   plt.clf()
   
-name_list = ['new_dehli_5km_(28.644800, 77.216721)', 'nairobi_5km_(-1.28333, 36.81667)',  'manhattan_5km_(40.754932, -73.984016)', 'rio_de_janeiro_5km_(-22.908333, -43.196388)', 'brugge_5km_(51.209348, 3.224700)']
+name_list = ['New Dehli','Nairobi', 'Manhattan', 'Rio de Janeiro', 'Brugge']
 
-functions = [gf.greedy_forwarding,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf]
+functions = [gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding]
 
-foldernames = ['normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf']
+foldernames = ['normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan']
+
 
 for name in name_list:
   data_generator(name, functions, foldernames,number_of_routes_pre_compute=80, step_size=150, amount_of_samples_per_bin=100)

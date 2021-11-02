@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-import gc
-import fix_graph_data as fgd
+import matplotlib as mpl
 
-name_list = ['new_dehli_5km_(28.644800, 77.216721)', 'nairobi_5km_(-1.28333, 36.81667)',  'manhattan_5km_(40.754932, -73.984016)', 'rio_de_janeiro_5km_(-22.908333, -43.196388)', 'brugge_5km_(51.209348, 3.224700)']
+mpl.style.use('bmh')
+np.random.seed(42)
+
+name_list = ['New Dehli', 'Nairobi', 'Manhattan', 'Rio de Janeiro', 'Brugge']
 
 def get_route_weight(name, number_of_routes): # generates the data for the desired function
-  graph_basic = fgd.load_graph(name)
+  graph_basic =  nx.read_gpickle(f'./graph_pickle/{name}.gpickle')
   
   node_list = list(graph_basic.nodes())
   list_indices_start = np.random.randint(0, len(node_list), size=number_of_routes) # first generate random numbers this is quicker

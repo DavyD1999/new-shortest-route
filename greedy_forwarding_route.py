@@ -1,7 +1,7 @@
 import numpy as np
 import coordinate_functions as cf
 """
-does normal greedy forwarding it stops when a cycle is discovered or no neighbors are found (which is only possible in a directed graph)
+does normal greedy forwarding it stops when not getting closer
 """
 
 def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node

@@ -5,7 +5,7 @@ import osmnx as ox
 import networkx as nx
 
 """
-does greedy forwarding including edge weight it stops when a cycle is discovered or no neighbors are found (which is only possible in a directed graph)
+does greedy forwarding including edge weight it stops when not getting closer
 """
 
 def greedy_forwarding_with_edge_weight(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node
