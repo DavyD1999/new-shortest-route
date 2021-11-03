@@ -189,10 +189,13 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
   
 name_list = ['New Dehli','Nairobi', 'Manhattan', 'Rio de Janeiro', 'Brugge']
 
-functions = [gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding]
+#functions = [gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding]
 
-foldernames = ['normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan']
+#foldernames = ['normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan']
 
+functions = [hr.hyperbolic_greedy_forwarding]
+
+foldernames = ['greedy_hyperbolic']
 
 for name in name_list:
   data_generator(name, functions, foldernames,number_of_routes_pre_compute=80, step_size=150, amount_of_samples_per_bin=100)
