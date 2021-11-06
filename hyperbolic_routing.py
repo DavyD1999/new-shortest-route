@@ -34,7 +34,7 @@ def hyperbolic_greedy_forwarding(id1, id2, min_tree, node_dict, ratio_travelled=
       print(nx.shortest_path_length(min_tree, current_node, id2, 'travel_time'))
       if ratio_travelled:
         print('not reached')
-        return inf, cf.distance(id1, current_node, min_tree) / cf.distance(id2, id1, min_tree)
+        return inf, cf.distance(id1, current_node, min_tree) / cf.distance(id2, id1, min_tree) 
       
       return inf
 
@@ -47,6 +47,3 @@ def hyperbolic_greedy_forwarding(id1, id2, min_tree, node_dict, ratio_travelled=
     return sec_travelled, 1 # reached the end
   
   return sec_travelled
-
-
-
