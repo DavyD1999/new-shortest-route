@@ -1,6 +1,9 @@
 import numpy as np
 import coordinate_functions as cf
 import networkx as nx
+from mpmath import mp
+
+mp.prec = 2000 # sets the precision 
 """
 does normal greedy forwarding it stops when a cycle is discovered or no neighbors are found (which is only possible in a directed min_tree)
 """
@@ -31,9 +34,10 @@ def hyperbolic_greedy_forwarding(id1, id2, min_tree, node_dict, ratio_travelled=
 
     #print(f'{min_distance} dit is de gekozen afstand')
     if min_distance == inf or current_node == node_with_min_distance:
+      print('not reached')
       print(nx.shortest_path_length(min_tree, current_node, id2, 'travel_time'))
       if ratio_travelled:
-        print('not reached')
+        
         return inf, cf.distance(id1, current_node, min_tree) / cf.distance(id2, id1, min_tree) 
       
       return inf
@@ -41,9 +45,9 @@ def hyperbolic_greedy_forwarding(id1, id2, min_tree, node_dict, ratio_travelled=
     sec_travelled += min_edge_weight
     current_node = node_with_min_distance
     route.append(current_node) 
-  
+  print('reached')
   if ratio_travelled:
-    print('reached')
+    
     return sec_travelled, 1 # reached the end
-  
+
   return sec_travelled

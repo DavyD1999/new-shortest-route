@@ -5,6 +5,9 @@ import cmath
 import random
 import networkx as nx
 import node_functions as nf
+from mpmath import mp
+
+mp.prec = 2000 # sets the precision 
 random.seed(42)
 """
 calculates a hyperbolic embedding for a undirected graph based on it's travel time
@@ -49,7 +52,17 @@ def find_start_node(min_tree): # finds a start node that will minimize tree dept
 tree = nf.make_d_regular_tree(given_depth=8,degree=3)
 
 print(find_start_node(tree))
+
 """
+def find_max_degree(min_tree): # returns node and the degree of this node
+  # first gets us the degree of every node in the tree, which gives us tuples of the type (node_id, degree) makes a numpy array out of it and then finds the max of the second argument
+  node_array = np.array(min_tree.degree((min_tree.nodes())))
+  max_degree = np.max(node_array[:,1])
+  # find which element this max_degree is
+  index = np.where(node_array[:,1]==max_degree)[0][0] # just take the first one that was encountered
+  return node_array[index][1] # first value is node id and second one is the degree
+
+
 def transformation(z_node, z_parent):
 	alpha = 1 / z_node.conjugate()
 	#z_return = (z_parent - z_node) / (1 - z_node.conjugate() * z_parent)
@@ -76,22 +89,24 @@ print(inverse_transformation(a,b)) # with this old a or new new a it will map b 
 """
 pi = np.pi
 
-def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, tau_func, start=False): # from arxiv: 1804.03329, # coordinates is numpy array of two coordinates
-	
+def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, tau_func, max_degree, start=False): # from arxiv: 1804.03329, # coordinates is numpy array of two coordinates
+
 	nodes_added = set()
-	degree =  min_tree.degree[node_id]
+	degree = min_tree.degree[node_id]
+	
 	if start is True:
 		theta = 0
 		k = 0 # starts at zero here since we want a full circle
 		came_from[node_id] = parent_id_of_node # this should be parent==child if not something is wrong
 		
 		for child in min_tree.neighbors(node_id):
-			new_val  = tau_func * complex(np.cos(theta + 2 * pi * k/ degree),  np.sin(theta + 2 * pi * k/ degree))
-			val = cmath.exp(1j*(theta + 2 * pi * k / degree)) * tau_func
+			
+			#new_val  = tau_func * complex(np.cos(theta + 2 * pi * k/ degree),  np.sin(theta + 2 * pi * k/ degree))
+			val = mp.exp(1j*(theta + 2 * pi * k / degree)) * tau_func
 
 			#print(new_val)
 			assert 2 * pi * k/ degree < 2 * pi - 0.001 # here willl be full circle
-			assert abs(val - new_val) < 0.0001
+			#assert abs(val - new_val) < 0.0001
 			node_dict[child] = val
 			# print(abs(2*np.arctanh(abs((new_val)/(1))))) # check to look if right distance embedded
 			came_from[child] = node_id # the child of the node is now embeded and we want to remember te structure since we'll need it later to embed the children of the newly embedded node
@@ -105,7 +120,7 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, t
 	z_node = node_dict[node_id]
 	z_parent = node_dict[parent_id_of_node]
 	z_parent_new = transformation(z_node, z_parent)
-	theta = np.angle(z_parent_new) 
+	theta = mp.arg(z_parent_new) 
 
 	k = 1
 
@@ -114,7 +129,7 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, t
 		if child not in node_dict: # could be already embedded if parent 
 			#new_val = tau_func * complex(np.cos(theta + 2 * pi * k/ degree), np.sin(theta + 2 * pi * k/ degree))
 			
-			val = cmath.exp(1j*(theta + 2 * pi * k / degree)) * tau_func
+			val = mp.exp(1j*(theta + 2 * pi * k / degree)) * tau_func
 			#assert abs(val - new_val) < 0.0001
 			assert 2 * pi * k/ degree < 2 * pi -0.001 # not allowed to be full circle  since origin is at 0 or two pi
 			z_child = val
@@ -122,7 +137,7 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, t
 			inv_transform_child = inverse_transformation(z_node, z_child)
 			assert abs(inv_transform_child) < 1 # should be in poincare disk use mpmath for better precision
 			# print(2*np.arctanh(abs((z_node-inv_transform_child)/(1-z_node.conjugate()*inv_transform_child))))
-			
+
 			node_dict[child] = inv_transform_child
 			came_from[child] = node_id
 			nodes_added.add(child)		
@@ -132,19 +147,20 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, t
 	return node_dict, came_from, nodes_added
 
 
-def hyperbolic_embed(min_tree, scaling_factor=1.1, came_from_return=False): # voor verder zie http://math.haifa.ac.il/ROVENSKI/B2.pdf p. 368
+def hyperbolic_embed(min_tree, scaling_factor=2.3, came_from_return=False): # voor verder zie http://math.haifa.ac.il/ROVENSKI/B2.pdf p. 368
 	
 	assert scaling_factor > 1
-
-	current_node = find_start_node(min_tree)
 	
+	current_node = find_start_node(min_tree)
+	max_degree = find_max_degree(min_tree)
+	print(f'{max_degree} is the max degree')
 	node_dict = dict() # of the form node id: complex coordinates
 	came_from = dict()
 	
 	tau_func = (np.exp(scaling_factor) - 1) / (np.exp(scaling_factor) + 1) # for scaling
 
-	node_dict[current_node] = complex(0, 0) # the start node
-	node_dict, came_from, nodes_added = sarkar_formula(current_node, current_node, node_dict, came_from, min_tree, tau_func, start=True)
+	node_dict[current_node] = mp.mpc(0.0, 0.0) # the start node
+	node_dict, came_from, nodes_added = sarkar_formula(current_node, current_node, node_dict, came_from, min_tree, tau_func,max_degree ,start=True)
 	
 	to_visit = queue.Queue() # FIFO queue
 
@@ -153,7 +169,7 @@ def hyperbolic_embed(min_tree, scaling_factor=1.1, came_from_return=False): # vo
 	
 	while not to_visit.empty(): # while not empty	
 		current_node = to_visit.get(0)
-		node_dict, came_from, nodes_added = sarkar_formula(current_node, came_from[current_node], node_dict, came_from, min_tree, tau_func, start=False)	
+		node_dict, came_from, nodes_added = sarkar_formula(current_node, came_from[current_node], node_dict, came_from, min_tree, tau_func, max_degree, start=False)	
 
 		for el in nodes_added:
 			to_visit.put(el)

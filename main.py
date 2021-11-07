@@ -1,3 +1,4 @@
 """
-6/11 todo one can add travel times to all the edges of the tree to test and compare with networkx
+todo: zoek die degree uit van je boom
+      zoek uit waarom precies de tau moet vermeerderen
 """
