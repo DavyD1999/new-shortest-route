@@ -39,5 +39,3 @@ def make_d_regular_tree(given_depth=3, degree=3, random_travel_time=False):
     assert len(graph.nodes) == 3 * 2**given_depth - 2, 'the amount of nodes does not seem to be okay'
     return graph
 
-
-print(make_d_regular_tree(given_depth=10))

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from fix_graph_data import get_max_velocity
 import matplotlib as mpl
 
-mpl.style.use('bmh')
+mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
 
 """

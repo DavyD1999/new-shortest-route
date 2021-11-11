@@ -14,8 +14,10 @@ import node_functions as nf
 
 import matplotlib as mpl
 
-mpl.style.use('bmh')
+mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
+font = {'size'   : 16}
+mpl.rc('font', **font)
 
 """
 generates stretch and arrival percentage histograms for the desired function
@@ -153,41 +155,31 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
     np.nan_to_num(arrived_percentage, copy=False, nan=1.) # sometimes we get 0/0
     # the below plot will tell us which percentage of a route of a certain binned weight will arrive
     plt.hist(base[:-1], base, weights=arrived_percentage) 
-    plt.xlabel('fastest path time (s)')
-    plt.ylabel('arrival ratio')
-    plt.title(f'{name} arrival ratio')
-    plt.savefig(f'./{foldername[x]}/{name}_percentage_arrived.png')
+    plt.xlabel('snelste reistijd (s)')
+    plt.ylabel('aankomst ratio')
+
+    plt.savefig(f'./{foldername[x]}/{name}_percentage_arrived.png', bbox_inches='tight')
     plt.clf() 
 
     # average stretch per bin 
-    plt.errorbar(base[:-1] + step_size/2, average_stretch, yerr=standard_dev_on_mean_stretch) # the :-1 because we only plot the middle and end value + half is outside our plotting region
+    print(base[:-1]+step_size/2)
+    plt.plot(base[:-1] + step_size/2, average_stretch, linewidth=3) # the :-1 because we only plot the middle and end value + half is outside our plotting region
     # +/2 because we want centered at center of bin
-    plt.xlabel('fastest path time (s)')
-    plt.ylabel('average stretch')
+    plt.xlabel('snelste reistijd (s)')
+    plt.ylabel('gemiddelde rek')
     plt.ylim(bottom=0)
-    plt.title(f'{name} average stretch')
-    plt.savefig(f'./{foldername[x]}/{name}_average_stretch.png')
+
+
+    plt.savefig(f'./{foldername[x]}/{name}_average_stretch.png', bbox_inches='tight')
     plt.clf() 
     
-    plt.errorbar(base[:-1] + step_size/2, average_ratio_travelled, yerr=standard_dev_on_mean_ratio_travelled) # the :-1 because we only plot the middle and end value + half is outside our plotting region
-
-    
-  
-  # generate timing plot
-  plt.bar(foldernames, timing_array)
-  x = np.arange(len(foldernames))
-  plt.xticks(x, foldernames, fontsize='10', rotation=-35)
-  plt.title(f'{name} execution time per succesful path')
-  plt.ylabel('execution time per path (s)')
-  plt.savefig(f'./speed_comparison/{name} greedy_execution_time_per_path.png', bbox_inches='tight')
-  plt.clf()
   
 name_list = ['regular tree']
 
-functions = [hr.hyperbolic_greedy_forwarding]#, gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding]
+functions = [hr.hyperbolic_greedy_forwarding]
 
-foldernames = ['greedy_hyperbolic']#, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan']
+foldernames = ['greedy_hyperbolic']
 
 for name in name_list:
-  data_generator(name, functions, foldernames,number_of_routes=150)
+  data_generator(name, functions, foldernames,number_of_routes=300)
   print(name)

@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import fix_graph_data as fgd
 
+import matplotlib as mpl
+mpl.style.use('tableau-colorblind10')
+
 def plot_degree_dist(name):
   graph = fgd.load_graph(name)
   

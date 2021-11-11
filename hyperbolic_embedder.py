@@ -6,8 +6,11 @@ import random
 import networkx as nx
 import node_functions as nf
 from mpmath import mp
+import matplotlib as mpl
 
-mp.prec = 2000 # sets the precision 
+mpl.style.use('tableau-colorblind10')
+
+mp.prec = 1800 # sets the precision 
 random.seed(42)
 """
 calculates a hyperbolic embedding for a undirected graph based on it's travel time
@@ -30,7 +33,7 @@ def find_start_node(min_tree): # finds a start node that will minimize tree dept
             bfs_queue.put(neighbor)
 
   furthest = node
-  bfs_queue.put(furthest)
+  bfs_queue.put(furthest) # was empty now not anymore
   
   visited = set() # reset the visited since we need to start all over again
   while not bfs_queue.empty():
@@ -89,7 +92,7 @@ print(inverse_transformation(a,b)) # with this old a or new new a it will map b 
 """
 pi = np.pi
 
-def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, tau_func, max_degree, start=False): # from arxiv: 1804.03329, # coordinates is numpy array of two coordinates
+def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, tau_func, start=False): # from arxiv: 1804.03329, # coordinates is numpy array of two coordinates
 
 	nodes_added = set()
 	degree = min_tree.degree[node_id]
@@ -148,19 +151,23 @@ def sarkar_formula(node_id, parent_id_of_node, node_dict, came_from, min_tree, t
 
 
 def hyperbolic_embed(min_tree, scaling_factor=2.3, came_from_return=False): # voor verder zie http://math.haifa.ac.il/ROVENSKI/B2.pdf p. 368
+	max_degree = find_max_degree(min_tree)
+	print(f'{max_degree} is the max degree')
 	
+	constant = 2 * np.log10(max_degree*2/np.pi)
+	scaling_factor = 2*constant + 0.001 # to make sure epsilon is smaller than 1 from Representation Tradeoffs for Hyperbolic Embeddings
+	print(f'{scaling_factor} is the scaling factor')
 	assert scaling_factor > 1
 	
 	current_node = find_start_node(min_tree)
-	max_degree = find_max_degree(min_tree)
-	print(f'{max_degree} is the max degree')
+	
 	node_dict = dict() # of the form node id: complex coordinates
 	came_from = dict()
 	
 	tau_func = (np.exp(scaling_factor) - 1) / (np.exp(scaling_factor) + 1) # for scaling
 
 	node_dict[current_node] = mp.mpc(0.0, 0.0) # the start node
-	node_dict, came_from, nodes_added = sarkar_formula(current_node, current_node, node_dict, came_from, min_tree, tau_func,max_degree ,start=True)
+	node_dict, came_from, nodes_added = sarkar_formula(current_node, current_node, node_dict, came_from, min_tree, tau_func,start=True)
 	
 	to_visit = queue.Queue() # FIFO queue
 
@@ -169,7 +176,7 @@ def hyperbolic_embed(min_tree, scaling_factor=2.3, came_from_return=False): # vo
 	
 	while not to_visit.empty(): # while not empty	
 		current_node = to_visit.get(0)
-		node_dict, came_from, nodes_added = sarkar_formula(current_node, came_from[current_node], node_dict, came_from, min_tree, tau_func, max_degree, start=False)	
+		node_dict, came_from, nodes_added = sarkar_formula(current_node, came_from[current_node], node_dict, came_from, min_tree, tau_func,  start=False)	
 
 		for el in nodes_added:
 			to_visit.put(el)
@@ -177,20 +184,52 @@ def hyperbolic_embed(min_tree, scaling_factor=2.3, came_from_return=False): # vo
 	if came_from_return is True:
 		return node_dict, came_from
 	
+
+	
 	return node_dict
 
 def plot_hyper_embedded_tree(node_dict, came_from):
+	font = {
+        
+        'size'   : 16}
+
+	mpl.rc('font', **font)
 
 	for key, value in came_from.items():
+		print(key)
 		x1, y1 = node_dict[key].real, node_dict[key].imag
 		x2, y2 = node_dict[value].real, node_dict[value].imag
-		plt.plot([x1,x2], [y1,y2], 'ro-')
-    
-	plt.savefig('embedding_test.png')
+		plt.plot([x1,x2], [y1,y2], 'ro-', linewidth=3)
+	
+	plt.rc('text')
+	plt.xlabel('x')
+	plt.ylabel('y')
+	plt.show()
+	plt.savefig('embedding_tree.png', bbox_inches='tight')
 	plt.clf()
 	print('gedaan')
 
-#tree = nf.make_d_regular_tree(given_depth=8,degree=3)
 
-#node_dict, came_from = hyperbolic_embed(tree, came_from_return=True)
-#plot_hyper_embedded_tree(node_dict, came_from)
+"""
+drie reguliere boom
+tree = nf.make_d_regular_tree(given_depth=8,degree=3)
+
+node_dict, came_from = hyperbolic_embed(tree, came_from_return=True)
+plot_hyper_embedded_tree(node_dict, came_from)
+
+"""
+
+def plot_hyperbolic_graph(graph, node_dict, name):
+	for edge in graph.edges():
+
+		x1, y1 = node_dict[edge[0]].real, node_dict[edge[0]].imag
+		x2, y2 = node_dict[edge[1]].real, node_dict[edge[1]].imag
+		plt.plot([x1,x2], [y1,y2], 'ro-', linewidth=3)
+
+
+	plt.rc('text')
+	plt.xlabel('x')
+	plt.ylabel('y')
+
+	plt.savefig(f'./hyperbolic_embedding/{name}.png', bbox_inches='tight')
+	plt.clf()

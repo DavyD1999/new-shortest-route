@@ -5,7 +5,7 @@ import numpy as np
 import hyperbolic_embedder as he # just so i can use the transformation function
 from mpmath import mp
 
-mp.prec = 2000 # sets the precision 
+mp.prec = 1800 # sets the precision 
 
 def get_coordinates(node_id, graph):
     coordinate = graph.nodes[node_id]

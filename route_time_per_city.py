@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import matplotlib as mpl
 
-mpl.style.use('bmh')
+mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
 
 name_list = ['New Dehli', 'Nairobi', 'Manhattan', 'Rio de Janeiro', 'Brugge']
