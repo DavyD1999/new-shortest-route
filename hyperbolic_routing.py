@@ -3,7 +3,7 @@ import coordinate_functions as cf
 import networkx as nx
 from mpmath import mp
 
-mp.prec = 1800 # sets the precision 
+mp.prec = 100 # sets the precision 
 """
 does normal greedy forwarding it stops when a cycle is discovered or no neighbors are found (which is only possible in a directed min_tree)
 """

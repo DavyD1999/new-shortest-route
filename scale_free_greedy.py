@@ -2,19 +2,15 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 import networkx as nx
-
-import greedy_then_a_star as gtas
-
-import fix_graph_data as fgd
+import random
 import hyperbolic_routing as hr
 import hyperbolic_embedder as he
-
 import node_functions as nf
-
 import matplotlib as mpl
 
 mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
+random.seed(42)
 font = {'size'   : 16}
 mpl.rc('font', **font)
 
@@ -22,9 +18,9 @@ mpl.rc('font', **font)
 generates stretch and arrival percentage histograms for the desired function
 """
 
-def data_generator(name, functions, foldername, number_of_routes=100, step_size=150): # generates the data for the desired function
+def data_generator(name, functions, foldername, number_of_routes=100, step_size=1): # generates the data for the desired function
 
-  graph = nf.make_d_regular_tree(given_depth=10, degree=3, random_travel_time=True)
+  graph = nf.make_scale_free_graph(10000, 2.1) # Emergence of Scaling in Random Networks internet 2.1
 
   node_list = list(graph.nodes())
 
@@ -43,10 +39,10 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
     # calculate the shortest distance once
     shortest_distance = nx.shortest_path_length(graph, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'travel_time')
     weight_path[i] = shortest_distance
-
-  values, base = np.histogram(weight_path, bins=np.arange(start=0,stop=max(weight_path) + step_size, step=step_size)) # + stepsize makes sure we actually get a last bin too
-
-
+    print(shortest_distance)
+  values, base = np.histogram(weight_path, bins=np.arange(start=min(weight_path),stop=max(weight_path) + step_size+0.00001, step=step_size)) # + stepsize +0.00001 makes sure we actually get a last bin too
+  print(values)
+  print(base)
   indices = np.digitize(weight_path, base) - 1
 
   timing_array = np.zeros(len(functions))
@@ -63,7 +59,7 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
       
       min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph, weight='travel_time')
       node_dict = he.hyperbolic_embed(min_tree)
-
+      print('here')
       for i in range(number_of_routes):  # do the greedy functions
         start_time = time.time()
 
@@ -76,34 +72,7 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
             total_time += time.time() - start_time  # only track time if succesful
             reached_end_node[i] = 1
             result_stretch[i] = result / weight_path[i]
-
-    elif function == gtas.greedy_forwarding_then_a_star:
-      max_velocity = fgd.get_max_velocity(graph)
-
-      for i in range(number_of_routes): # do the greedy functions
-        start_time = time.time()
-
-        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, max_velocity=max_velocity, ratio_travelled=True) # result like route weight of the desired path
-        
-        ratio_travelled_list[i] = ratio_travelled
-
-        if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
-          total_time += time.time() - start_time # only track time if succesful
-          reached_end_node[i] = 1
-          result_stretch[i] = result/weight_path[i]
-    
-    else: # for the a star function
-      for i in range(number_of_routes): # do the greedy functions
-        start_time = time.time()
-
-        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph ,ratio_travelled=True) # result like route weight of the desired path
-        
-        ratio_travelled_list[i] = ratio_travelled
-
-        if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
-          total_time += time.time() - start_time # only track time if succesful
-          reached_end_node[i] = 1
-          result_stretch[i] = result/weight_path[i]
+        print(i)
 
     arrived = np.zeros(len(values))
     average_stretch = np.zeros(len(values))
@@ -147,38 +116,40 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
       squared_sum[indices[s]] += (rat_trav - average_ratio_travelled[indices[s]]) ** 2
 
     standard_dev_on_mean_ratio_travelled = (squared_sum/ (n * (n-1))) ** (0.5)
-
+    print(average_stretch)
     average_stretch[average_stretch == 0] = np.nan
 
     arrived_percentage = arrived / values
-    np.nan_to_num(arrived_percentage, copy=False, nan=1.) # sometimes we get 0/0
+    #np.nan_to_num(arrived_percentage, copy=False, nan=1.) # sometimes we get 0/0
+
+
     # the below plot will tell us which percentage of a route of a certain binned weight will arrive
     plt.hist(base[:-1], base, weights=arrived_percentage) 
     plt.xlabel('snelste reistijd (s)')
     plt.ylabel('aankomst ratio')
-
-    plt.savefig(f'./{foldername[x]}/{name}_percentage_arrived.png', bbox_inches='tight')
+    #plt.title(f'{name} arrival ratio')
+    plt.savefig(f'./scale_free/{name}_percentage_arrived.png')
     plt.clf() 
 
     # average stretch per bin 
-    print(base[:-1]+step_size/2)
-    plt.plot(base[:-1] + step_size/2, average_stretch, linewidth=3) # the :-1 because we only plot the middle and end value + half is outside our plotting region
-    # +/2 because we want centered at center of bin
+    plt.errorbar(base[:-1], average_stretch, yerr=standard_dev_on_mean_stretch, linewidth=3) 
     plt.xlabel('snelste reistijd (s)')
     plt.ylabel('gemiddelde rek')
     plt.ylim(bottom=0)
 
-
-    plt.savefig(f'./{foldername[x]}/{name}_average_stretch.png', bbox_inches='tight')
+    plt.savefig(f'./{foldernames[x]}/{name}_average_stretch.png')
     plt.clf() 
-    
+
+
   
-name_list = ['regular tree']
+name_list = ['scale free internet']
 
 functions = [hr.hyperbolic_greedy_forwarding]
 
-foldernames = ['greedy_hyperbolic']
+foldernames = ['scale_free']
 
 for name in name_list:
-  data_generator(name, functions, foldernames,number_of_routes=300)
+  data_generator(name, functions, foldernames,number_of_routes=400)
   print(name)
+
+

@@ -5,7 +5,7 @@ import numpy as np
 import hyperbolic_embedder as he # just so i can use the transformation function
 from mpmath import mp
 
-mp.prec = 1800 # sets the precision 
+mp.prec = 100 # sets the precision (1800) for traffic networks
 
 def get_coordinates(node_id, graph):
     coordinate = graph.nodes[node_id]
@@ -75,7 +75,7 @@ def distance_hyperbolic(z1, z2): # give two coordinates here
     #z2_new = abs(z2_new)
     #dis2 = np.arccosh(1 + 2* z2_new**2/(1-z2_new**2))
     #assert  abs(2*np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) - dis2)<10**-5 # extra check on the distance
-    return abs((z2-z1)/(1-z1.conjugate()*z2)) # not actual distance but monotic function so don't care
+    return abs(2*mp.atanh(abs((z2-z1)/(1-z1.conjugate()*z2)))) # not actual distance but monotic function so don't care
 	#return np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) # p.368 Geometry SECOND EDITION D AV I D A . B R A N N A N M AT T H E W F. E S P L E N J E R E M Y J . G R AY
 
 def distance_manhattan(node_id1, node_id2, graph):
