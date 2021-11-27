@@ -10,10 +10,14 @@ import fix_graph_data as fgd
 import hyperbolic_routing as hr
 import hyperbolic_embedder as he
 import greedy_manhattan as gm
-
+import node_functions as nf
+import coordinate_functions as cf
+import gravity_pressure as gp
 
 import stratified_sampling as ss
 import matplotlib as mpl
+
+
 
 mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
@@ -24,8 +28,6 @@ mpl.rc('font', **font)
 generates stretch and arrival percentage histograms for the desired function
 """
 
-
-
 def data_generator(name, functions, foldername, number_of_routes_pre_compute=80, step_size=150, amount_of_samples_per_bin=50): # generates the data for the desired function
 
   graph = nx.read_gpickle(f'./graph_pickle/{name}.gpickle')
@@ -33,7 +35,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
   node_list = list(graph.nodes())
 
   weight_path, list_indices_start, list_indices_end = ss.stratified_sampling(amount_of_samples_per_bin, number_of_routes_pre_compute, step_size, node_list, graph)
-  print('hier')
+
   result_stretch = np.zeros(len(list_indices_start)) # DO NOT USE LIKE CAUSE IT WOULD CONVERT THEM TO INTS
   reached_end_node =  np.zeros(len(list_indices_start))  
   
@@ -96,11 +98,30 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
           reached_end_node[i] = 1
           result_stretch[i] = result/weight_path[i]
     
-    else: # for the a star function
+    elif foldername[x] == 'greedy_spring':
+      
+      graph_spring = nf.spring(graph) 
+      print('gespringed')
+
       for i in range(number_of_routes): # do the greedy functions
         start_time = time.time()
 
-        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph ,ratio_travelled=True) # result like route weight of the desired path
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_spring, distance_function=cf.supremum ,ratio_travelled=True) # result like route weight of the desired path
+        
+        ratio_travelled_list[i] = ratio_travelled
+
+        if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
+          total_time += time.time() - start_time # only track time if succesful
+          reached_end_node[i] = 1
+          result_stretch[i] = result/weight_path[i]
+    
+    else: 
+   
+      for i in range(number_of_routes): # do the greedy functions
+
+        start_time = time.time()
+
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph,ratio_travelled=True, plot_stuck=False) # result like route weight of the desired path
         
         ratio_travelled_list[i] = ratio_travelled
 
@@ -194,10 +215,10 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
   
 name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
 
-functions = [hr.hyperbolic_greedy_forwarding] #, gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding]
+functions = [hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure]
 
-foldernames = ['greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan']
+foldernames = ['greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure']
 
 for name in name_list:
-  data_generator(name, functions, foldernames,number_of_routes_pre_compute=80, step_size=150, amount_of_samples_per_bin=70)
+  data_generator(name, functions, foldernames,number_of_routes_pre_compute=10, step_size=150, amount_of_samples_per_bin=70)
   print(name)

@@ -1,11 +1,11 @@
 import numpy as np
 import coordinate_functions as cf
-
+import node_functions as nf
 """
 does greedy forwarding with manhattan distance it stops when not getting closer
 """
 
-def manhattan_greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node
+def manhattan_greedy_forwarding(id1, id2, graph, ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node
   inf = np.inf
   total_nodes = graph.nodes()
   route = list() # list of nodes which brings us to an end point
@@ -31,6 +31,8 @@ def manhattan_greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 i
 
     #print(f'{min_distance} dit is de gekozen afstand')
     if min_distance == inf or current_node == node_with_min_distance:
+      if plot_stuck is True: # if we want to plot explicitely where we are greedy_forwarding
+          nf.plot_stuck(id1, id2, current_node, graph, given_depth=1)
 
       if ratio_travelled:
         return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)

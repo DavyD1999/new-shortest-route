@@ -1,13 +1,15 @@
 import numpy as np
 import queue
 import matplotlib.pyplot as plt
-import cmath
+import pickle
 import random
+import os
 import networkx as nx
 import node_functions as nf
 from mpmath import mp
 import matplotlib as mpl
 import sys
+
 
 mpl.style.use('tableau-colorblind10')
 
@@ -47,7 +49,7 @@ def find_start_node(min_tree): # finds a start node that will minimize tree dept
   other_furthest = node
 
   path = nx.shortest_path(min_tree, source=furthest, target=other_furthest) # returns the shortest path counted in hops (just going from one node to other node not taking into account traveltime)
-
+  print('the longest path in hops is:')
   print(len(path))
  
   return path[len(path)//2] 
@@ -196,10 +198,11 @@ def hyperbolic_embed(min_tree, scaling_factor=2.3, came_from_return=False): # vo
     if came_from_return is True:
         return node_dict, came_from
     
-    
-    #print('gaat nu de afstand printen')
+    print(f'de grootte is: {sys.getsizeof(node_dict[el])}')
+    print('gaat nu de max afstand printen')
     print(find_max_hyperbolic_distance(node_dict, eerste))
-    
+
+
     return node_dict
 
 def plot_hyper_embedded_tree(node_dict, came_from):
@@ -242,11 +245,11 @@ def plot_hyperbolic_graph(graph, node_dict, name):
 
     mpl.rc('font', **font)
     for i, edge in enumerate(listedg):
-        print(i)
+
         x1, y1 = node_dict[edge[0]].real, node_dict[edge[0]].imag
         x2, y2 = node_dict[edge[1]].real, node_dict[edge[1]].imag
-        plt.plot([x1,x2], [y1,y2], '-bD',  c='blue', mfc='red', mec='r', linewidth=0.01, markersize=0.3)
-
+        plt.plot([x1,x2], [y1,y2], '-bD',  c='blue', mfc='red', mec='r', linewidth=0.01, markersize=0.3) #voor internet
+        #plt.plot([x1,x2], [y1,y2], 'ro-', linewidth=3) # voor gewone dingen
 
     plt.rc('text')
     plt.xlabel('x')
@@ -255,7 +258,28 @@ def plot_hyperbolic_graph(graph, node_dict, name):
     plt.savefig(f'./hyperbolic_embedding/{name}.png', bbox_inches='tight', dpi=200)
     plt.clf()
 
+#graph = nf.make_scale_free_graph(10000, 2.1)
+
+#node_dict, came_from = hyperbolic_embed(graph, came_from_return=True)
+#plot_hyperbolic_graph(graph, node_dict, 'scale free')
+
+
+def check_size_embedding(node_dict, name):
+
+    with open(f'./hyperbolic_saved/{name}.pickle', 'wb') as handle:
+        pickle.dump(node_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+    grootte_pickle =  os.path.getsize(f'./hyperbolic_saved/{name}.pickle')
+    print(f"de pickle grootte van het bestand in bytes is {grootte_pickle}")
+
+
 graph = nf.make_scale_free_graph(10000, 2.1)
 
-node_dict, came_from = hyperbolic_embed(graph, came_from_return=True)
-plot_hyperbolic_graph(graph, node_dict, 'scale free')
+#node_dict, came_from = hyperbolic_embed(graph, came_from_return=True)
+#plot_hyperbolic_graph(graph, node_dict, 'scale free')
+
+#graph = nx.read_gpickle(f'./graph_pickle/Brugge.gpickle')
+min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph, weight='travel_time')
+node_dict = hyperbolic_embed(min_tree)
+
+check_size_embedding(node_dict, 'scale_free')

@@ -39,10 +39,8 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
     # calculate the shortest distance once
     shortest_distance = nx.shortest_path_length(graph, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'travel_time')
     weight_path[i] = shortest_distance
-    print(shortest_distance)
   values, base = np.histogram(weight_path, bins=np.arange(start=min(weight_path),stop=max(weight_path) + step_size+0.00001, step=step_size)) # + stepsize +0.00001 makes sure we actually get a last bin too
-  print(values)
-  print(base)
+
   indices = np.digitize(weight_path, base) - 1
 
   timing_array = np.zeros(len(functions))
@@ -59,7 +57,7 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
       
       min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph, weight='travel_time')
       node_dict = he.hyperbolic_embed(min_tree)
-      print('here')
+
       for i in range(number_of_routes):  # do the greedy functions
         start_time = time.time()
 
@@ -72,7 +70,7 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
             total_time += time.time() - start_time  # only track time if succesful
             reached_end_node[i] = 1
             result_stretch[i] = result / weight_path[i]
-        print(i)
+
 
     arrived = np.zeros(len(values))
     average_stretch = np.zeros(len(values))
@@ -149,7 +147,7 @@ functions = [hr.hyperbolic_greedy_forwarding]
 foldernames = ['scale_free']
 
 for name in name_list:
-  data_generator(name, functions, foldernames,number_of_routes=400)
+  data_generator(name, functions, foldernames,number_of_routes=300)
   print(name)
 
 

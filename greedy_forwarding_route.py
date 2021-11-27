@@ -1,10 +1,12 @@
 import numpy as np
 import coordinate_functions as cf
+import node_functions as nf
 """
 does normal greedy forwarding it stops when not getting closer
 """
 
-def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node
+def greedy_forwarding(id1, id2, graph, distance_function=cf.distance ,ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node
+  
   inf = np.inf
   total_nodes = graph.nodes()
   route = list() # list of nodes which brings us to an end point
@@ -21,7 +23,7 @@ def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start no
     # min_distance will keep decreasing like we want if it doesn't decrease it will keep the same node with min distance and thus greedy forwarding will fail
     for _ , neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'): # calculate from every out
       if neighbor_node != current_node: # eliminate cycles
-        new_distance = cf.distance(id2, neighbor_node, graph) # end node is id2 so try to get closer to this end node
+        new_distance = distance_function(id2, neighbor_node, graph) # end node is id2 so try to get closer to this end node
         if new_distance < min_distance:
           node_with_min_distance = neighbor_node
           min_distance = new_distance
@@ -39,8 +41,13 @@ def greedy_forwarding(id1, id2, graph, ratio_travelled=False): # id1 is start no
       fig.savefig('testgreedy.png', dpi=500)
       fig.clf()
       """
+      if plot_stuck is True: # if we want to plot explicitely where we are greedy_forwarding
+          nf.plot_stuck(id1, id2, current_node, graph, given_depth=1)
+
+
       if ratio_travelled:
         return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
+      
       
       return inf
         

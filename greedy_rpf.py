@@ -11,7 +11,7 @@ Combined-Greedy-Face Routing
 rpf tries to find the best projection of u,v on the straight u,d with u being the node now v the neighbor and d the destination see coordinate function for exact metric
 """
 
-def greedy_forwarding_rpf(id1, id2, graph, ratio_travelled=False): # id1 is start node id2 is go to node
+def greedy_forwarding_rpf(id1, id2, graph, ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node
   inf = np.inf
   total_nodes = graph.nodes()
 
@@ -36,6 +36,9 @@ def greedy_forwarding_rpf(id1, id2, graph, ratio_travelled=False): # id1 is star
           min_edge_weight = edge_weight
 
     if min_distance == inf or node_with_min_distance in visited:
+
+      if plot_stuck is True: # if we want to plot explicitely where we are greedy_forwarding
+          nf.plot_stuck(id1, id2, current_node, graph, given_depth=1)      
       if ratio_travelled:
         return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
       

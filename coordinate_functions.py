@@ -2,10 +2,10 @@
 this file has all kinds of functions mainly to help calculate the haversine distance between two nodes in a graph
 """
 import numpy as np
-import hyperbolic_embedder as he # just so i can use the transformation function
+#import hyperbolic_embedder as he # just so i can use the transformation function
 from mpmath import mp
 
-mp.prec = 100 # sets the precision (1800) for traffic networks
+mp.prec = 1800 # sets the precision (1800) for traffic networks
 
 def get_coordinates(node_id, graph):
     coordinate = graph.nodes[node_id]
@@ -83,3 +83,20 @@ def distance_manhattan(node_id1, node_id2, graph):
     y2, x2 = get_coordinates(node_id2, graph)
     
     return abs(y1-y2) + abs(x1-x2)
+
+def get_coordinate_array(node_id, graph):
+    data = graph.nodes[node_id]
+    return data['coordinates']
+
+def euclidian_n_dimensions(node_id1, node_id2, graph):
+    coor_node1 = get_coordinate_array(node_id1, graph)
+    coor_node2 = get_coordinate_array(node_id2, graph)
+
+    return np.sqrt(np.sum((coor_node1-coor_node2)**2))
+
+def supremum(node_id1, node_id2, graph):
+    coor_node1 = get_coordinate_array(node_id1, graph)
+    coor_node2 = get_coordinate_array(node_id2, graph)
+
+    return np.max(np.abs(coor_node1-coor_node2))
+
