@@ -272,6 +272,7 @@ def check_size_embedding(node_dict, name):
     grootte_pickle =  os.path.getsize(f'./hyperbolic_saved/{name}.pickle')
     print(f"de pickle grootte van het bestand in bytes is {grootte_pickle}")
 
+"""
 
 graph = nf.make_scale_free_graph(10000, 2.1)
 
@@ -283,3 +284,4 @@ min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph, weight='travel_ti
 node_dict = hyperbolic_embed(min_tree)
 
 check_size_embedding(node_dict, 'scale_free')
+"""

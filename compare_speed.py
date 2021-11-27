@@ -56,7 +56,7 @@ def speed_comparator(name):
     assert abs(b-c) < 10**-2 and abs(d-c) < 10**-2 and abs(a-c) < 10**-2 and abs(a-e) < 10**-2, f'{c} dwpq and {b} normal dijkstra {d} astar {a} networkx {e} astar wpq'
     
 
-  plt.bar(['Networkx dijkstra', 'Dijkstra', 'Dijkstra w/ pq', 'A*', 'A* w/ pq'],np.array([dijkstra_networkx_speed, dijkstra_speed, dwpq_speed, a_star_speed, a_star_wpq_speed])/number_of_routes)
+  plt.bar(['Networkx dijkstra', 'Dijkstra', 'Dijkstra w/ pq', 'A*', 'A* w/ pq'],np.array([dijkstra_networkx_speed, dijkstra_speed, dwpq_speed, a_star_speed, a_star_wpq_speed])/len(list_indices_start))
   plt.title(f'{name} execution time per path')
   plt.xlabel('method')
   plt.ylabel('execution time per path (s)')

@@ -192,7 +192,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
     plt.ylabel('gemiddelde rek')
     plt.ylim(bottom=0)
     #plt.title(f'{name} average stretch')
-    plt.savefig(f'./{foldername[x]}/{name}_average_stretch.png')
+    plt.savefig(f'./{foldername[x]}/{name}_average_stretch.png',bbox_inches='tight')
     plt.clf() 
     
     plt.errorbar(base[:-1] + step_size/2, average_ratio_travelled, yerr=standard_dev_on_mean_ratio_travelled, linewidth=3) # the :-1 because we only plot the middle and end value + half is outside our plotting region
@@ -201,7 +201,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
     plt.ylabel('ratio afgelegd')
     plt.ylim(bottom=0)
     #plt.title(f'{name} ratio travelled')
-    plt.savefig(f'./{foldername[x]}/{name}_ratio_travelled.png')
+    plt.savefig(f'./{foldername[x]}/{name}_ratio_travelled.png',bbox_inches='tight')
     plt.clf() 
   
   # generate timing plot
@@ -215,9 +215,9 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
   
 name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
 
-functions = [hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure]
+functions = [gp.gravity_pressure] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure]
 
-foldernames = ['greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure']
+foldernames = ['gravity_pressure'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
 
 for name in name_list:
   data_generator(name, functions, foldernames,number_of_routes_pre_compute=10, step_size=150, amount_of_samples_per_bin=70)
