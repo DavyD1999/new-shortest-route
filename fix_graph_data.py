@@ -56,3 +56,13 @@ def load_graph(name):
 def get_max_velocity(graph):
   return max(np.array(list(graph.edges(data = 'speed_kph')), ndmin=2)[:,2])
 
+def get_weigted_average_velocity(graph):
+    
+    tot_weights = 0
+    weighted_sum = 0
+    
+    for _,_, data in graph.edges(data=True):
+        weighted_sum += data['speed_kph'] * data['travel_time']
+        tot_weights += data['travel_time']
+
+    return weighted_sum / tot_weights

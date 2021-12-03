@@ -6,7 +6,7 @@ from queue import PriorityQueue
 this file is able to calculate the shortest time using a star with the euclidian distance with and without priority queue
 """
 
-def A_star(id1, id2, graph, max_velocity): # id1 is start node id2 is go to node
+def A_star(id1, id2, graph, velocity): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -25,7 +25,7 @@ def A_star(id1, id2, graph, max_velocity): # id1 is start node id2 is go to node
         g_score[node] = inf
     
     g_score[id1] = 0
-    f_score[id1] = cf.euclid_distance(id1, id2, graph) / max_velocity * 3.6 # f score is a lower bound
+    f_score[id1] = cf.euclid_distance(id1, id2, graph) / velocity * 3.6 # f score is a lower bound
     empty_set = set()
 
     while open_set != empty_set:
@@ -50,7 +50,7 @@ def A_star(id1, id2, graph, max_velocity): # id1 is start node id2 is go to node
             if tentative_g_score < g_score[neighbor_node]:
                 came_from[neighbor_node] = current_node
                 g_score[neighbor_node] = tentative_g_score # CHANGE TO MAX VEL
-                f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(neighbor_node, id2, graph) / max_velocity * 3.6 # this will make it a good lower bound
+                f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(neighbor_node, id2, graph) / velocity * 3.6 # this will make it a good lower bound
 
                 open_set.add(neighbor_node) # this will check if already in it so just add it
     print("hier")
@@ -61,7 +61,7 @@ def A_star(id1, id2, graph, max_velocity): # id1 is start node id2 is go to node
 
 
 
-def A_star_priority_queue(id1, id2, graph, max_velocity): # id1 is start node id2 is go to node
+def A_star_priority_queue(id1, id2, graph, velocity): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -82,7 +82,7 @@ def A_star_priority_queue(id1, id2, graph, max_velocity): # id1 is start node id
         g_score[node] = inf
     
     g_score[id1] = 0
-    f_score[id1] = cf.euclid_distance(id1, id2, graph) / max_velocity * 3.6 # f score is a lower bound
+    f_score[id1] = cf.euclid_distance(id1, id2, graph) / velocity * 3.6 # f score is a lower bound
     priority_queue.put((f_score[id1], id1))
     
 
@@ -104,7 +104,7 @@ def A_star_priority_queue(id1, id2, graph, max_velocity): # id1 is start node id
             if tentative_g_score < g_score[neighbor_node]:
                 came_from[neighbor_node] = current_node
                 g_score[neighbor_node] = tentative_g_score # CHANGE TO MAX VEL
-                f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(neighbor_node, id2, graph) / max_velocity * 3.6 # this will make it a good lower bound
+                f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(neighbor_node, id2, graph) / velocity * 3.6 # this will make it a good lower bound
                 priority_queue.put((f_score[neighbor_node], neighbor_node))
 
         visited.add(current_node)

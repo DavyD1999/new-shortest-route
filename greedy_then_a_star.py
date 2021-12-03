@@ -9,7 +9,7 @@ import a_star
 does normal greedy forwarding till not getting closer then do a star
 """
 
-def greedy_forwarding_then_a_star(id1, id2, graph, max_velocity, ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node, plot stuck never used cause never stuck
+def greedy_forwarding_then_a_star(id1, id2, graph, velocity, ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node, plot stuck never used cause never stuck
   inf = np.inf
   total_nodes = graph.nodes()
   
@@ -34,7 +34,7 @@ def greedy_forwarding_then_a_star(id1, id2, graph, max_velocity, ratio_travelled
       """
       if the node was already visited or the node that will be visited does not seem to have any neighbors
       """
-      sec_travelled += a_star.A_star(current_node, id2, graph, max_velocity)
+      sec_travelled += a_star.A_star(current_node, id2, graph, velocity)
       if ratio_travelled:
         return sec_travelled, 1 # reached the end like always for A*
   

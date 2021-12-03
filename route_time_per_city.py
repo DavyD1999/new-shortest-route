@@ -10,7 +10,11 @@ name_list = ['New Dehli', 'Nairobi', 'Manhattan', 'Rio de Janeiro', 'Brugge']
 
 def get_route_weight(name, number_of_routes): # generates the data for the desired function
   graph_basic =  nx.read_gpickle(f'./graph_pickle/{name}.gpickle')
-  
+
+  font = { 'size'   : 16}
+
+  mpl.rc('font', **font)
+
   node_list = list(graph_basic.nodes())
   list_indices_start = np.random.randint(0, len(node_list), size=number_of_routes) # first generate random numbers this is quicker
   list_indices_end = np.random.randint(0, len(node_list), size=number_of_routes)
@@ -31,14 +35,14 @@ def get_route_weight(name, number_of_routes): # generates the data for the desir
 
   # how many routes are in each bin
   plt.hist(weight_path, base)
-  plt.xlabel('fastest path (s)')
-  plt.ylabel('number of fastest paths')
-  plt.title(f'{name} distribution of fastest paths')
-  plt.savefig(f'./route_weight/{name}_route_weight_distribution.png')
+  plt.xlabel('snelste pad (s)')
+  plt.ylabel('aantal paden')
+
+  plt.savefig(f'./route_weight/{name}_route_weight_distribution.png', bbox_inches='tight')
   plt.clf()
-  print('done') 
+
 
 for name in name_list:
-  get_route_weight(name, 2000) 
+  get_route_weight(name, 1000) 
 
   

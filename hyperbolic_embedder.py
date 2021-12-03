@@ -13,7 +13,7 @@ import sys
 
 mpl.style.use('tableau-colorblind10')
 
-mp.prec = 100 # sets the precision 
+mp.prec = 1800 # sets the precision 
 random.seed(42)
 """
 calculates a hyperbolic embedding for a undirected graph based on it's travel time

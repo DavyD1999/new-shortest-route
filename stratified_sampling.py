@@ -1,11 +1,10 @@
 import networkx as nx
 import numpy as np
-
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 import coordinate_functions as cf
 from scipy.optimize import curve_fit
 
-amount_of_samples_per_bin = 50
-number_of_routes_pre_compute = 80
 np.random.seed(42)
 
 def function(x, A): 
@@ -22,7 +21,9 @@ one can fasten the selection procedure by quite some time one can use: osmnx.dis
 """
 
 def stratified_sampling(amount_of_samples_per_bin, number_of_routes_pre_compute, step_size, node_list, graph):
-
+    
+    np.random.seed(42)
+    
     list_indices_start = np.random.randint(0, len(node_list), size=number_of_routes_pre_compute) # first generate random numbers this is quicker
     list_indices_end = np.random.randint(0, len(node_list), size=number_of_routes_pre_compute)
 
@@ -38,9 +39,27 @@ def stratified_sampling(amount_of_samples_per_bin, number_of_routes_pre_compute,
         # calculate the shortest distance once
         weight_path[i] = nx.shortest_path_length(graph, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'travel_time')
         distance[i] = cf.distance(node_list[list_indices_start[i]], node_list[list_indices_end[i]],graph)
+    
+
+    font = { 'size'   : 16}
+
+    mpl.rc('font', **font)
+    
+    mpl.style.use('tableau-colorblind10')
+    #plt.scatter(distance, weight_path, marker='x', s=17.5, c='tab:purple')
 
     popt, pcov = curve_fit(function, distance, weight_path) # your data x, y to fit
+    
+    """
+    xvals = np.arange(np.min(distance)-5, np.max(distance)+5) # step is 1 by defalult
+    plt.plot(xvals, xvals*popt,  linewidth=2.5)
+    plt.xlabel('hemelsbrede afstand (m)')
+    plt.ylabel('reistijd (s)')
+    plt.savefig('./stratified/rechtevenredig.png', bbox_inches='tight')
+    plt.clf()
+    """
 
+    
     list_indices_start = list(list_indices_start)
     list_indices_end = list(list_indices_end)
 

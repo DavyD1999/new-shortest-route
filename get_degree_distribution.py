@@ -1,26 +1,31 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import fix_graph_data as fgd
+import networkx as nx
 
 import matplotlib as mpl
 mpl.style.use('tableau-colorblind10')
 
 def plot_degree_dist(name):
-  graph = fgd.load_graph(name)
+  graph = nx.read_gpickle(f'./graph_pickle/{name}.gpickle')
   
   degrees = np.zeros(len(graph.nodes()),dtype=int)
   
   for i, vertex in enumerate(graph.nodes()): # for every node get how many neighbors
     degrees[i] = graph.degree(vertex)
-  bins = [i for i in range(1, np.max(degrees)+2)] #
+  print(degrees)
+  bins = np.array([i for i in range(1, np.max(degrees)+1)]) #
+  font = { 'size'   : 16}
 
-  plt.hist(degrees, bins=bins)
-  plt.xlabel('degree')
-  plt.ylabel('number of nodes')
-  plt.title(f'{name} node distribution')
-  plt.savefig(f'./degree_distribution/{name}_node_distribution.png')
+  mpl.rc('font', **font)
+  x = np.arange(len(bins))
+  plt.hist(degrees, bins=bins, align='left')
+  plt.xlabel('graad')
+  plt.ylabel('aantal')
+  plt.xticks(x, bins-1)
+  plt.savefig(f'./degree_distribution/{name}_node_distribution.png', bbox_inches='tight')
   plt.clf()
-name_list = ['new_dehli_5km_(28.644800, 77.216721)', 'nairobi_5km_(-1.28333, 36.81667)',  'manhattan_5km_(40.754932, -73.984016)', 'rio_de_janeiro_5km_(-22.908333, -43.196388)', 'brugge_5km_(51.209348, 3.224700)']
+
+name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
 
 for name in name_list:
   plot_degree_dist(name)
