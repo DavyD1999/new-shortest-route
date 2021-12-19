@@ -42,9 +42,9 @@ def euclid_distance(node_id1, node_id2, graph): # DO NOT USE
 
 def rpf_distance(current_node_id, go_to_node_id, destination_id, graph):
   
-  u = projector(get_coordinates(current_node_id, graph))
-  v = projector(get_coordinates(go_to_node_id, graph))
-  d = projector(get_coordinates(destination_id, graph))
+  u = np.array(get_coordinates(current_node_id, graph))
+  v = np.array(get_coordinates(go_to_node_id, graph))
+  d = np.array(get_coordinates(destination_id, graph))
   
   # calculate cos between ud and uv aka project our goto on the straight line between current and destination
   c = np.linalg.norm(v-d)

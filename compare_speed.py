@@ -27,7 +27,7 @@ def speed_comparator(name):
   node_list = list(graph_basic.nodes())
   
   _ , list_indices_start, list_indices_end = ss.stratified_sampling(50, 50, 150, node_list, graph_basic)
-  assert 1 == 2
+
   dijkstra_networkx_speed = 0
   dijkstra_speed = 0
   dwpq_speed =  0
@@ -68,23 +68,23 @@ def speed_comparator(name):
   mpl.rc('font', **font)
 
   naming = ['Networkx Dijkstra', 'Dijkstra', 'Dijkstra met pq', 'A*', 'A* met pq','A* niet-toelaatbaar']
-  plt.bar(naming,np.array([dijkstra_networkx_speed, dijkstra_speed, dwpq_speed, a_star_speed, a_star_wpq_speed, a_star_average_vel])/len(list_indices_start))
+  plt.barh(naming,np.array([dijkstra_networkx_speed, dijkstra_speed, dwpq_speed, a_star_speed, a_star_wpq_speed, a_star_average_vel])/len(list_indices_start))
   x = np.arange(len(naming))
-  plt.xticks(x, naming, fontsize='14', rotation=-35)
+  plt.yticks(x, naming, fontsize='14', rotation=0)
 
-
-  plt.ylabel('uitvoeringstijd per pad (s)')
+  plt.xscale('log')
+  plt.xlabel('uitvoeringstijd per pad (s)')
   plt.savefig(f'./speed_comparison/{name}_execution_time_per_path.png',bbox_inches='tight')
   plt.clf()
   # tweede figuur want conventionele dijkstra is wat te groot voor de figuur
 
   naming = ['Networkx Dijkstra', 'Dijkstra met pq', 'A*', 'A* met pq','A* niet-toelaatbaar']
-  plt.bar(naming,np.array([dijkstra_networkx_speed, dwpq_speed, a_star_speed, a_star_wpq_speed, a_star_average_vel])/len(list_indices_start))
+  plt.barh(naming,np.array([dijkstra_networkx_speed, dwpq_speed, a_star_speed, a_star_wpq_speed, a_star_average_vel])/len(list_indices_start))
   x = np.arange(len(naming))
-  plt.xticks(x, naming, fontsize='14', rotation=-35)
+  plt.yticks(x, naming, fontsize='14', rotation=0)
+ 
 
-
-  plt.ylabel('uitvoeringstijd per pad (s)')
+  plt.xlabel('uitvoeringstijd per pad (s)')
   plt.savefig(f'./speed_comparison/{name}_execution_time_per_path_ingezoomd.png',bbox_inches='tight')
   plt.clf()
 

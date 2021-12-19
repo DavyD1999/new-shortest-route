@@ -70,7 +70,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
       min_tree = nx.algorithms.tree.mst.minimum_spanning_tree(graph, weight='travel_time')
       node_dict = he.hyperbolic_embed(min_tree)
       
-      he.plot_hyperbolic_graph(graph, node_dict, name) # plot the actual graph in hyperbolic space
+      #he.plot_hyperbolic_graph(graph, node_dict, name) # plot the actual graph in hyperbolic space
       
       for i in range(number_of_routes):  # do the greedy functions
         start_time = time.time()
@@ -102,6 +102,22 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
           reached_end_node[i] = 1
           result_stretch[i] = result/weight_path[i]
     
+    elif function == a_star.A_star_priority_queue:
+        average_velocity = fgd.get_weigted_average_velocity(graph)
+
+        for i in range(number_of_routes): # do the greedy functions
+            start_time = time.time()
+
+            
+            result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, velocity=average_velocity),1 # pure a star always finds a way
+
+            ratio_travelled_list[i] = ratio_travelled
+
+            if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
+                total_time += time.time() - start_time # only track time if succesful
+                reached_end_node[i] = 1
+                result_stretch[i] = result/weight_path[i]
+
     elif foldername[x] == 'greedy_spring':
       
       graph_spring = nf.spring(graph) 
@@ -190,11 +206,11 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
     plt.xlabel('snelste reistijd (s)')
     plt.ylabel('aankomst ratio')
     #plt.title(f'{name} arrival ratio')
-    plt.savefig(f'./{foldername[x]}/{name}_percentage_arrived.png')
+    plt.savefig(f'./{foldername[x]}/{name}_percentage_arrived.png', bbox_inches='tight')
     plt.clf() 
 
     # average stretch per bin 
-    plt.errorbar(base[:-1] + step_size/2, average_stretch, yerr=standard_dev_on_mean_stretch, linewidth=3,ecolor='tab:purple', elinewidth=3, linestyle='--') # the :-1 because we only plot the middle and end value + half is outside our plotting region
+    plt.errorbar(base[:-1] + step_size/2, average_stretch, yerr=standard_dev_on_mean_stretch, linewidth=3,ecolor='tab:purple', elinewidth=3, linestyle='--', capsize=5) # the :-1 because we only plot the middle and end value + half is outside our plotting region
     # +/2 because we want centered at center of bin
     plt.xlabel('snelste reistijd (s)')
     plt.ylabel('gemiddelde rek')
@@ -204,7 +220,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
     plt.savefig(f'./{foldername[x]}/{name}_average_stretch.png',bbox_inches='tight')
     plt.clf() 
     
-    plt.errorbar(base[:-1] + step_size/2, average_ratio_travelled, yerr=standard_dev_on_mean_ratio_travelled, linewidth=3) # the :-1 because we only plot the middle and end value + half is outside our plotting region
+    plt.errorbar(base[:-1] + step_size/2, average_ratio_travelled, yerr=standard_dev_on_mean_ratio_travelled, linewidth=3,ecolor='tab:purple', elinewidth=3, linestyle='--', capsize=5) # the :-1 because we only plot the middle and end value + half is outside our plotting region
     # +/2 because we want centered at center of bin
     plt.xlabel('snelste reistijd')
     plt.ylabel('ratio afgelegd')
@@ -214,22 +230,29 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
     plt.clf() 
   
   # generate timing plot
-  plt.bar(foldernames, timing_array)
+  """
+  plt.barh(foldernames, timing_array)
   x = np.arange(len(foldernames))
-  plt.xticks(x, foldernames, fontsize='13', rotation=-35)
+  plt.yticks(x, ['normaal', 'met gewicht', 'grav. press.', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
   #plt.title(f'{name} execution time per succesful path')
-  plt.ylabel('uitvoeringstijd per pad (s)')
+  plt.xlabel('uitvoeringstijd per pad (s)')
+  plt.xscale('log')
   plt.savefig(f'./speed_comparison/{name} greedy_execution_time_per_path.png', bbox_inches='tight')
   plt.clf()
+  """
+  
   
 #name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
 
-name_list = ['Brugge', 'Manhattan']
+name_list = ['Manhattan','New Dehli','Nairobi', 'Rio de Janeiro','Brugge']
 
-functions = [gf.greedy_forwarding, gfwe.greedy_forwarding_with_edge_weight, ] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, 
+functions = [gf.greedy_forwarding, gfwe.greedy_forwarding_with_edge_weight, gp.gravity_pressure, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, 
 
-foldernames = ['normal_greedy', 'greedy_with_edge_weight', ] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
+#functions = [a_star.A_star_priority_queue]
+
+foldernames = ['normal_greedy', 'greedy_with_edge_weight', 'gravity_pressure', 'greedy_then_a_star', 'greedy_rpf','greedy_manhattan','greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
 #'pure_A_star'
+#foldernames = ['pure_A_star']
 for name in name_list:
-  data_generator(name, functions, foldernames,number_of_routes_pre_compute=50, step_size=150, amount_of_samples_per_bin=50)
+  data_generator(name, functions, foldernames,number_of_routes_pre_compute=50, step_size=150, amount_of_samples_per_bin=70)
   print(name)

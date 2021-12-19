@@ -15,7 +15,7 @@ font = {'size'   : 16}
 mpl.rc('font', **font)
 
 """
-generates stretch and arrival percentage histograms for the desired function
+generates stretch and arrival percentage histograms for the desired function also the stretch plot and in the hyperbolic embedder the coordinate function and the hyperbolic greedy forwarding the precision can be set to 100
 """
 
 def data_generator(name, functions, foldername, number_of_routes=100, step_size=1): # generates the data for the desired function
@@ -38,6 +38,7 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
 
     # calculate the shortest distance once
     shortest_distance = nx.shortest_path_length(graph, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'travel_time')
+    assert shortest_distance in range(1,8), 'wow geen pad'
     weight_path[i] = shortest_distance
   values, base = np.histogram(weight_path, bins=np.arange(start=min(weight_path),stop=max(weight_path) + step_size+0.00001, step=step_size)) # + stepsize +0.00001 makes sure we actually get a last bin too
 
@@ -62,7 +63,7 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
         start_time = time.time()
 
         result = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]],
-                                                min_tree,node_dict,
+                                                graph,node_dict,
                                                 ratio_travelled=False)  # result like route weight of the desired path
         
 
@@ -130,12 +131,12 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
     plt.clf() 
 
     # average stretch per bin 
-    plt.errorbar(base[:-1], average_stretch, yerr=standard_dev_on_mean_stretch, linewidth=3) 
+    plt.errorbar(base[:-1], average_stretch, yerr=standard_dev_on_mean_stretch, linewidth=3,ecolor='tab:purple', elinewidth=3, linestyle='--',capsize=5) 
     plt.xlabel('snelste reistijd (s)')
     plt.ylabel('gemiddelde rek')
     plt.ylim(bottom=0)
 
-    plt.savefig(f'./{foldernames[x]}/{name}_average_stretch.png')
+    plt.savefig(f'./{foldernames[x]}/{name}_average_stretch.png',bbox_inches='tight')
     plt.clf() 
 
 
