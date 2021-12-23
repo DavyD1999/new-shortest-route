@@ -28,17 +28,22 @@ def distance(node_id1, node_id2, graph): # calculates the haversine distance
   return haversine((y1,x1),(y2,x2))
 
 conv_fac = np.pi / 180
-R = 6371000 # earth radius
+R = 6357000 # earth radius
 pi_over_4 = np.pi / 4
+factor = R*2*np.pi/360
+def euclid_distance(node_id1, node_id2, graph):
+  
+  lat0, lon0 = get_coordinates(node_id1, graph) 
+  lat1, lon1 = get_coordinates(node_id2, graph) 
 
-def euclid_distance(node_id1, node_id2, graph): # DO NOT USE
-  y1, x1 = get_coordinates(node_id1, graph)
-  y2, x2 = get_coordinates(node_id2, graph)
-  deglen = 110.25 # source https://jonisalonen.com/2014/computing-distance-between-coordinates-can-be-simple-and-fast/
-  lat = y1 - y2
-  long = (x1 - x2)
-    
-  return  (lat**2 + long**2)**(0.5) * conv_fac * 6371000
+  #deglen = 110.25 * 1000 # en in kilometer source https://jonisalonen.com/2014/computing-distance-between-coordinates-can-be-simple-and-fast/
+  # earth circumference divided by 360
+  a = lat1 - lat0
+  b = (lon0 - lon1)*np.cos(lat0*conv_fac)
+  
+  return factor*np.sqrt(a*a + b*b)
+
+
 
 def rpf_distance(current_node_id, go_to_node_id, destination_id, graph):
   
@@ -75,7 +80,14 @@ def distance_hyperbolic(z1, z2): # give two coordinates here
     #z2_new = abs(z2_new)
     #dis2 = np.arccosh(1 + 2* z2_new**2/(1-z2_new**2))
     #assert  abs(2*np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) - dis2)<10**-5 # extra check on the distance
-    return abs(2*mp.atanh(abs((z2-z1)/(1-z1.conjugate()*z2)))) # not actual distance but monotic function so don't care
+    ding1 = mp.fabs(1-z1.conjugate()*z2)
+    ding2 = mp.fabs(z2-z1)
+
+    #terug_geven = (ding1 + ding2)/(ding1 - ding2)
+    #print(2*mp.atanh(abs((z2-z1)/(1-z1.conjugate()*z2))))
+
+
+    return (ding1 + ding2)/(ding1 - ding2) # not actual distance but monotic function so don't care it should be mp.log(terug_geven) but log is monotic function
 	#return np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) # p.368 Geometry SECOND EDITION D AV I D A . B R A N N A N M AT T H E W F. E S P L E N J E R E M Y J . G R AY
 
 def distance_manhattan(node_id1, node_id2, graph):

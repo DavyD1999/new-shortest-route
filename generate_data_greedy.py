@@ -210,7 +210,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
     plt.clf() 
 
     # average stretch per bin 
-    plt.errorbar(base[:-1] + step_size/2, average_stretch, yerr=standard_dev_on_mean_stretch, linewidth=3,ecolor='tab:purple', elinewidth=3, linestyle='--', capsize=5) # the :-1 because we only plot the middle and end value + half is outside our plotting region
+    plt.errorbar(base[:-1] + step_size/2, average_stretch, yerr=standard_dev_on_mean_stretch, linewidth=3,ecolor='tab:purple', elinewidth=3, linestyle='--', capsize=5,barsabove=True) # the :-1 because we only plot the middle and end value + half is outside our plotting region
     # +/2 because we want centered at center of bin
     plt.xlabel('snelste reistijd (s)')
     plt.ylabel('gemiddelde rek')
@@ -230,29 +230,34 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
     plt.clf() 
   
   # generate timing plot
-  """
+
   plt.barh(foldernames, timing_array)
   x = np.arange(len(foldernames))
-  plt.yticks(x, ['normaal', 'met gewicht', 'grav. press.', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
+  plt.yticks(x, ['normaal', 'met gewicht', 'gravity pressure', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
   #plt.title(f'{name} execution time per succesful path')
   plt.xlabel('uitvoeringstijd per pad (s)')
   plt.xscale('log')
   plt.savefig(f'./speed_comparison/{name} greedy_execution_time_per_path.png', bbox_inches='tight')
   plt.clf()
-  """
-  
-  
-#name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
 
-name_list = ['Manhattan','New Dehli','Nairobi', 'Rio de Janeiro','Brugge']
+  
+  
+name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
+
+# name_list = ['Manhattan','New Dehli','Nairobi', 'Rio de Janeiro','Brugge']
+
+#name_list = ['Brugge']
 
 functions = [gf.greedy_forwarding, gfwe.greedy_forwarding_with_edge_weight, gp.gravity_pressure, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, 
 
+#functions = [hr.hyperbolic_greedy_forwarding]
 #functions = [a_star.A_star_priority_queue]
 
 foldernames = ['normal_greedy', 'greedy_with_edge_weight', 'gravity_pressure', 'greedy_then_a_star', 'greedy_rpf','greedy_manhattan','greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
 #'pure_A_star'
 #foldernames = ['pure_A_star']
+#foldernames = ['greedy_hyperbolic']
+
 for name in name_list:
-  data_generator(name, functions, foldernames,number_of_routes_pre_compute=50, step_size=150, amount_of_samples_per_bin=70)
+  data_generator(name, functions, foldernames,number_of_routes_pre_compute=50, step_size=150, amount_of_samples_per_bin=50)
   print(name)

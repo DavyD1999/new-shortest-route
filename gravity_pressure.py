@@ -3,6 +3,8 @@ import coordinate_functions as cf
 import collections
 import time
 
+"""
+inefficient function don't use
 def remove_doubles(route_list): # will return a route list without doubles and thus all the in between nodes removed too
 
     inside_dict = dict() # dictionary since we want the last index as well
@@ -21,9 +23,37 @@ def remove_doubles(route_list): # will return a route list without doubles and t
         return route_list
 
     return remove_doubles(route_list[ :index]  + route_list[inside_dict[route_list[index]]: ]) # there might be more doubles left, 
+"""
 
+def remove_doubles2(route_list):
+    
+    indices = dict()
 
-def gravity_pressure(id1, id2, graph, distance_function=cf.distance, ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node 
+    for i, val in enumerate(route_list):
+        if val in indices.keys():
+            indices[val] = [indices[val][0], i]
+        else:
+            indices[val] = [i]
+
+    to_return = list()
+
+    i = 0
+    j = 0
+
+    while i < len(route_list):
+        if len(indices[route_list[i]]) > 1:
+            to_return += route_list[j:i]
+
+            j = indices[route_list[i]][1]
+            i = indices[route_list[i]][1]
+
+        i += 1
+        
+    to_return += route_list[j:len(route_list)]
+
+    return to_return
+
+def gravity_pressure(id1, id2, graph, distance_function=cf.euclid_distance, ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node 
   """
   does the gravity pressure algorithm as found in Hyperbolic Embedding and Routing for
   Dynamic Graphs 10.1109/infcom.2009.5062083
@@ -102,7 +132,7 @@ def gravity_pressure(id1, id2, graph, distance_function=cf.distance, ratio_trave
   
 
   # now we can substract the stretch we did too much aka the double or triple visited nodes
-  route_removed_extra_steps = remove_doubles(route)
+  route_removed_extra_steps = remove_doubles2(route)
 
   assert id1 == route_removed_extra_steps[0] and id2 == route_removed_extra_steps[-1], 'something went wrong in the remove doubles'
   

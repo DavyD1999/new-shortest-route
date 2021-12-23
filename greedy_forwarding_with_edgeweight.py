@@ -22,7 +22,7 @@ def greedy_forwarding_with_edge_weight(id1, id2, graph, ratio_travelled=False, p
     for _ , neighbor_node, data in graph.edges(current_node, data=True): # calculate from every neighbour
 
       if neighbor_node != current_node: # can be omitted since cycles were eliminated
-        new_distance = cf.distance(id2, neighbor_node, graph) +  data['length']
+        new_distance = cf.euclid_distance(id2, neighbor_node, graph) +  data['length']
         if new_distance < min_distance: # needs to keep decreasing
           node_with_min_distance = neighbor_node
           min_distance = new_distance
@@ -34,7 +34,7 @@ def greedy_forwarding_with_edge_weight(id1, id2, graph, ratio_travelled=False, p
 
       
       if ratio_travelled:
-        return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
+        return inf, cf.euclid_distance(id1, current_node, graph) / cf.euclid_distance(id2, id1, graph)
       
       return inf
 

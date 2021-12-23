@@ -25,6 +25,7 @@ def A_star(id1, id2, graph, velocity): # id1 is start node id2 is go to node
         g_score[node] = inf
     
     g_score[id1] = 0
+
     f_score[id1] = cf.euclid_distance(id1, id2, graph) / velocity * 3.6 # f score is a lower bound
     empty_set = set()
 
@@ -85,8 +86,6 @@ def A_star_priority_queue(id1, id2, graph, velocity): # id1 is start node id2 is
     f_score[id1] = cf.euclid_distance(id1, id2, graph) / velocity * 3.6 # f score is a lower bound
     priority_queue.put((f_score[id1], id1))
     
-
-
     while priority_queue.empty() is False:
 
         _ , current_node = priority_queue.get() # first attribute is the weight

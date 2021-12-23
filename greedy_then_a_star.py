@@ -24,7 +24,7 @@ def greedy_forwarding_then_a_star(id1, id2, graph, velocity, ratio_travelled=Fal
      
     for _, neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'):
       if neighbor_node != current_node: # eliminate cycles
-        new_distance = cf.distance(id2, neighbor_node, graph) # end node is id2 so try to get closer to this end node
+        new_distance = cf.euclid_distance(id2, neighbor_node, graph) # end node is id2 so try to get closer to this end node
         if new_distance < min_distance: # needs to keep decreasing
           node_with_min_distance = neighbor_node
           min_distance = new_distance

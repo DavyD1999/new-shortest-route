@@ -40,7 +40,7 @@ def greedy_forwarding_rpf(id1, id2, graph, ratio_travelled=False, plot_stuck=Fal
       if plot_stuck is True: # if we want to plot explicitely where we are greedy_forwarding
           nf.plot_stuck(id1, id2, current_node, graph, given_depth=1)      
       if ratio_travelled:
-        return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
+        return inf, cf.euclid_distance(id1, current_node, graph) / cf.euclid_distance(id2, id1, graph)
       
       return inf
 

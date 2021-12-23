@@ -35,7 +35,7 @@ def manhattan_greedy_forwarding(id1, id2, graph, ratio_travelled=False, plot_stu
           nf.plot_stuck(id1, id2, current_node, graph, given_depth=1)
 
       if ratio_travelled:
-        return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
+        return inf, cf.euclid_distance(id1, current_node, graph) / cf.euclid_distance(id2, id1, graph)
       
       return inf
 

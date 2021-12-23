@@ -5,7 +5,7 @@ import node_functions as nf
 does normal greedy forwarding it stops when not getting closer
 """
 
-def greedy_forwarding(id1, id2, graph, distance_function=cf.distance ,ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node
+def greedy_forwarding(id1, id2, graph, distance_function=cf.euclid_distance ,ratio_travelled=False, plot_stuck=False): # id1 is start node id2 is go to node
   
   inf = np.inf
   total_nodes = graph.nodes()
@@ -46,7 +46,7 @@ def greedy_forwarding(id1, id2, graph, distance_function=cf.distance ,ratio_trav
 
 
       if ratio_travelled:
-        return inf, cf.distance(id1, current_node, graph) / cf.distance(id2, id1, graph)
+        return inf, cf.euclid_distance(id1, current_node, graph) / cf.euclid_distance(id2, id1, graph)
       
       
       return inf
