@@ -5,6 +5,7 @@ import numpy as np
 import coordinate_functions as cf
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from collections import Counter
 
 random.seed(42)
 np.random.seed(42)
@@ -55,6 +56,22 @@ def make_scale_free_graph(number_of_nodes, exponent):
     graph = nx.Graph()
     for index, element in enumerate(degree_array[:-1]): # last one does not really matter since we don't look at it in the loop
         assert element <= number_of_nodes - index - 1, 'the degree is too high for the number of nodes so chose a higher number of nodes'
+    
+    c = Counter(degree_array)
+    voorkomens = c.most_common()
+    x_array = list()
+    y_array = list()
+    
+    for x,y in voorkomens:
+        x_array.append(x)
+        y_array.append(y)
+    """
+    plt.loglog(x_array, y_array, 'o', markersize=3) 
+    plt.xlabel('Graad')
+    plt.ylabel('Aantal')
+    
+    plt.savefig('./randoms/scalefreedegree.png')
+    """    
     
     for i in range(number_of_nodes - 1): # last one should fix it self or be 1 degree left then don't care about it
         if i not in graph.nodes():
@@ -159,3 +176,5 @@ def plot_stuck(start_node, end_node, node_stuck, graph, given_depth=1):
     plt.legend()
     plt.savefig(f'./stuck_greedy/{node_stuck}_{start_node}_{end_node}', bbox_inches='tight')
     plt.clf()
+
+#make_scale_free_graph(10000, 2.1)

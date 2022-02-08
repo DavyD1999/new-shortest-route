@@ -25,14 +25,15 @@ def haversine(couple_1, couple_2): # gets two couples of latitude longitude coup
 def distance(node_id1, node_id2, graph): # calculates the haversine distance 
   y1, x1 = get_coordinates(node_id1, graph)
   y2, x2 = get_coordinates(node_id2, graph)
+    
   return haversine((y1,x1),(y2,x2))
 
 conv_fac = np.pi / 180
 R = 6357000 # earth radius
 pi_over_4 = np.pi / 4
 factor = R*2*np.pi/360
-def euclid_distance(node_id1, node_id2, graph):
-  
+def euclid_distance(node_id1, node_id2, graph): #fine to use
+ 
   lat0, lon0 = get_coordinates(node_id1, graph) 
   lat1, lon1 = get_coordinates(node_id2, graph) 
 

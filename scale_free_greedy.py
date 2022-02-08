@@ -38,7 +38,7 @@ def data_generator(name, functions, foldername, number_of_routes=100, step_size=
 
     # calculate the shortest distance once
     shortest_distance = nx.shortest_path_length(graph, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'travel_time')
-    assert shortest_distance in range(1,8), 'wow geen pad'
+    assert shortest_distance in range(1,8), 'wow geen pad' # heel specifiek hier
     weight_path[i] = shortest_distance
   values, base = np.histogram(weight_path, bins=np.arange(start=min(weight_path),stop=max(weight_path) + step_size+0.00001, step=step_size)) # + stepsize +0.00001 makes sure we actually get a last bin too
 
