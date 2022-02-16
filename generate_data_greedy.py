@@ -233,7 +233,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
 
   plt.barh(foldernames, timing_array)
   x = np.arange(len(foldernames))
-  plt.yticks(x, ['normaal', 'met gewicht', 'gravity pressure', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
+  plt.yticks(x, ['normaal', 'gravity pressure', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
   #plt.title(f'{name} execution time per succesful path')
   plt.xlabel('uitvoeringstijd per pad (s)')
   plt.xscale('log')
@@ -248,12 +248,12 @@ name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
 
 #name_list = ['Brugge']
 
-functions = [gf.greedy_forwarding, gfwe.greedy_forwarding_with_edge_weight, gp.gravity_pressure, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, 
+functions = [gf.greedy_forwarding, gp.gravity_pressure, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, 
 
 #functions = [hr.hyperbolic_greedy_forwarding]
 #functions = [a_star.A_star_priority_queue]
 
-foldernames = ['normal_greedy', 'greedy_with_edge_weight', 'gravity_pressure', 'greedy_then_a_star', 'greedy_rpf','greedy_manhattan','greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
+foldernames = ['normal_greedy', 'gravity_pressure', 'greedy_then_a_star', 'greedy_rpf','greedy_manhattan','greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
 #'pure_A_star'
 #foldernames = ['pure_A_star']
 #foldernames = ['greedy_hyperbolic']
