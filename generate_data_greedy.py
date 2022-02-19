@@ -3,7 +3,7 @@ import time
 import matplotlib.pyplot as plt
 import networkx as nx
 import greedy_forwarding_route as gf
-import greedy_forwarding_with_edgeweight as gfwe
+import greedy_forwarding_with_edgeweight as gfwe # not really used in thesis
 import greedy_then_a_star as gtas
 import greedy_rpf as grpf
 import fix_graph_data as fgd
