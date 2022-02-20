@@ -11,6 +11,6 @@ new_name = ['New Dehli', 'Nairobi', 'Manhattan', 'Rio de Janeiro', 'Brugge']
 for i, name in enumerate(name_list):
     graph = fgd.load_graph(f'./graph_graphml/{name}')
     # Store data (serialize)
-    nx.write_gpickle(graph, f'./graph_pickle/{new_name[i]}.gpickle')
+    nx.write_gpickle(graph, f'./graph_pickle/{new_name[i]}.gpickle') # protocol 4 for google
     
         

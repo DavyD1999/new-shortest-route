@@ -242,7 +242,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
 
   
   
-name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Brugge', 'Manhattan']
+name_list = ['Brugge','New Dehli','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
 # name_list = ['Manhattan','New Dehli','Nairobi', 'Rio de Janeiro','Brugge']
 

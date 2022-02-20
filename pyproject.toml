@@ -10,6 +10,8 @@ networkx = "^2.6.3"
 osmnx = "^1.1.1"
 mpmath = "^1.2.1"
 node2vec = "^0.4.4"
+sklearn = "^0.0"
+tensorflow = "^2.8.0"
 
 [tool.poetry.dev-dependencies]
 

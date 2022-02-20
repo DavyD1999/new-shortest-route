@@ -39,7 +39,7 @@ def stratified_sampling(amount_of_samples_per_bin, number_of_routes_pre_compute,
         # calculate the shortest distance once
         weight_path[i] = nx.shortest_path_length(graph, node_list[list_indices_start[i]], node_list[list_indices_end[i]], 'travel_time')
         distance[i] = cf.distance(node_list[list_indices_start[i]], node_list[list_indices_end[i]],graph)
-    
+        
 
     font = { 'size'   : 16}
 
@@ -58,8 +58,23 @@ def stratified_sampling(amount_of_samples_per_bin, number_of_routes_pre_compute,
     plt.savefig('./stratified/rechtevenredig.png', bbox_inches='tight')
     plt.clf()
     """
+    # hieronder gaat wat extra staan over een schatting voor testdata: 55 voor brugge
+    """
+    new_list_indices_start = np.random.randint(0, len(node_list), size=400) # first generate random numbers this is quicker
+    new_list_indices_end = np.random.randint(0, len(node_list), size=400)
 
+    new_weight_path = np.zeros(400)
+    new_distance = np.zeros(400)
+    for i in range(len(new_list_indices_start)):
+        new_weight_path[i] = nx.shortest_path_length(graph, node_list[new_list_indices_start[i]], node_list[new_list_indices_end[i]], 'travel_time')
+        new_distance[i] = cf.distance(node_list[new_list_indices_start[i]], node_list[new_list_indices_end[i]],graph)
+
+    print('hieronder staat het')
+    print(np.sum(abs(popt*new_distance-new_weight_path))/400)
     
+    """
+    
+    # nieuw hier
     list_indices_start = list(list_indices_start)
     list_indices_end = list(list_indices_end)
 
