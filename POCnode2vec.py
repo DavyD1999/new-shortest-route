@@ -9,11 +9,10 @@ import sklearn
 from sklearn import preprocessing
 import coordinate_functions as cf
 import pickle
-import gzip
 import gc
 
 
-name_list = ['New Dehli','Nairobi', 'Rio de Janeiro', 'Manhattan','Brugge']
+name_list = [ 'Manhattan','Brugge','New Dehli','Nairobi', 'Rio de Janeiro',]
 
 def create_model(city, graph, dimensions):
     """
@@ -21,7 +20,8 @@ def create_model(city, graph, dimensions):
     strings of the actual node ids
     """
     
-    node2vec_paths = Node2Vec(graph, dimensions=dimensions, walk_length=80, num_walks=10, workers=4, weight_key='travel_time', seed=42) # in paper dimensions could be different and q=p=1
+    node2vec_paths = Node2Vec(graph, dimensions=dimensions, walk_length=107, num_walks=17, workers=4, 
+       weight_key='travel_time', seed=42) # in paper dimensions could be different and q=p=1
     
     print('done with creating paths will start fitting model')
     start_time = time.time()
@@ -85,7 +85,7 @@ def transformer(embedding, landmark_list, distance_list, operation, double_use=F
         for node, distance in distance_list[i].items():
             to_add = operation(embedding[str(landmark)], embedding[str(node)])
             if add_distance is True: # if we want to add the euclidian distance as extra input
-                euclid_distance = cf.distance(landmark, node, graph)
+                euclid_distance = cf.euclid_distance(landmark, node, graph)
                 np.append(to_add, euclid_distance)
             input_array.append(operation(embedding[str(landmark)], embedding[str(node)]))
             output_array.append(distance)
@@ -123,18 +123,23 @@ def neural_network(input_training, output_training, input_test, output_test, cit
     
     model.compile(
         optimizer=tf.keras.optimizers.SGD(learning_rate=0.000001*46), # batch size is standard 32 
-        loss='mse',
+        loss='mae', # could be change to mae
         metrics=[tf.keras.losses.MeanAbsoluteError()]
     )
           
-    print(model.fit(input_training, output_training, epochs=4, workers=4, verbose=1, use_multiprocessing=True))
+    print(model.fit(input_training, output_training, epochs=4, workers=4, verbose=2, use_multiprocessing=True))
 
-    print(model.evaluate(input_test, output_test, verbose=1))
+    print(model.evaluate(input_test, output_test, verbose=2))
+
+    # save needed stuff for later in the A* function with this input
+    with open(f'./saved_scalers/{city}.pkl', 'wb') as f:
+        pickle.dump(scaler, f)
+    model.save(f'./NNcities/{city}') # load it in with tf.keras.models.load_model('saved_model/my_model')
     
-    model.save_weights(f'./NNcities/{city}')
     tf.keras.backend.clear_session()
 
 for city in name_list:
+    print(city)
     
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
     #create_model(city, graph, dimensions=128) # create and save model if not created yet
@@ -143,31 +148,9 @@ for city in name_list:
     embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
     
     input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, double_use=True, add_distance=True) # big file
-    """
-    with gzip.open(f'./for_google/{city}_input_training.gz', "wb") as f:
-        pickle.dump(input_training, f, protocol=4)
-    
-    with gzip.open(f'./for_google/{city}_output_training.gz', "wb") as f:
-        pickle.dump(output_training, f, protocol=4)
-
-    with gzip.open(f'./for_google/{city}_input_test.gz', "wb") as f:
-        pickle.dump(input_test, f, protocol=4)
-    
-    with gzip.open(f'./for_google/{city}_output_test.gz', "wb") as f:
-        pickle.dump(output_test, f, protocol=4)
-    
-    """
-
-    
-
-    
     
     input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
-         concatenation, add_distance=True) # big file    
-
-    
-
-
+         concatenation, add_distance=True) # big file, FOR TEST DATA DOUBLE USE HAS TO BE FALSE
 
     neural_network(input_training, output_training, input_test, output_test, city)
 
