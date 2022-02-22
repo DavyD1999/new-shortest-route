@@ -21,11 +21,11 @@ def create_model(city, graph, dimensions):
     """
     
     node2vec_paths = Node2Vec(graph, dimensions=dimensions, walk_length=107, num_walks=17, workers=4, 
-       weight_key='travel_time', seed=42) # in paper dimensions could be different and q=p=1
+       weight_key='travel_time',q=1,p=1 ,seed=42) # in paper dimensions could be different and q=p=1
     
     print('done with creating paths will start fitting model')
     start_time = time.time()
-    model = node2vec_paths.fit(window=5, min_count=0, batch_words=4)
+    model = node2vec_paths.fit(window=12, min_count=0, batch_words=4, seed=42, workers=4)
     print(time.time()-start_time)
     print('starts saving')
     
@@ -123,7 +123,7 @@ def neural_network(input_training, output_training, input_test, output_test, cit
     
     model.compile(
         optimizer=tf.keras.optimizers.SGD(learning_rate=0.000001*46), # batch size is standard 32 
-        loss='mae', # could be change to mae
+        loss='mse', 
         metrics=[tf.keras.losses.MeanAbsoluteError()]
     )
           
@@ -142,7 +142,7 @@ for city in name_list:
     print(city)
     
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
-    #create_model(city, graph, dimensions=128) # create and save model if not created yet
+    create_model(city, graph, dimensions=128) # create and save model if not created yet
     samples = 350000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 1 million of samples
     landmark_list_training, distance_list_training, landmark_list_test, distance_list_test = calculate_shortest_path(graph, samples, samples//10) # 100 training 10 test cities
     embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
@@ -150,7 +150,7 @@ for city in name_list:
     input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, double_use=True, add_distance=True) # big file
     
     input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
-         concatenation, add_distance=True) # big file, FOR TEST DATA DOUBLE USE HAS TO BE FALSE
+         concatenation, add_distance=True) # big file, FOR TEST DATA DOULB
 
     neural_network(input_training, output_training, input_test, output_test, city)
 
