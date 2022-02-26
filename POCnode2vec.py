@@ -99,13 +99,14 @@ def transformer(embedding, landmark_list, distance_list, operation, double_use=F
     return input_array, output_array
             
 def neural_network(input_training, output_training, input_test, output_test, city):
+    print(input_test[0])
 
     scaler = preprocessing.StandardScaler() # normalize it here because normalisation in the model does not really work since tensorflow 2.2.0  
     input_training = scaler.fit_transform(input_training)
     input_test = scaler.transform(input_test) # same normalization on the test data
 
     model = tf.keras.Sequential([
-        #tf.keras.layers.ReLU(), # input layer has relu activation function too in paper did this but seems a bit strange
+
         tf.keras.layers.Dense(256, activation='relu'),
         tf.keras.layers.LayerNormalization(), # normalize the layer
         tf.keras.layers.Dropout(0.15, seed=42),
@@ -122,7 +123,8 @@ def neural_network(input_training, output_training, input_test, output_test, cit
     ])
     
     model.compile(
-        optimizer=tf.keras.optimizers.SGD(learning_rate=0.000001*46), # batch size is standard 32 
+        #optimizer=tf.keras.optimizers.Adam(learning_rate=0.001)
+        tf.keras.optimizers.SGD(learning_rate=0.000001*46), # batch size is standard 32 
         loss='mse', 
         metrics=[tf.keras.losses.MeanAbsoluteError()]
     )
@@ -131,10 +133,11 @@ def neural_network(input_training, output_training, input_test, output_test, cit
 
     print(model.evaluate(input_test, output_test, verbose=2))
 
+    
     # save needed stuff for later in the A* function with this input
     with open(f'./saved_scalers/{city}.pkl', 'wb') as f:
         pickle.dump(scaler, f)
-    model.save(f'./NNcities/{city}') # load it in with tf.keras.models.load_model('saved_model/my_model')
+    model.save(f'./NNcities/{city}.h5') # load it in with tf.keras.models.load_model('saved_model/my_model')
     
     tf.keras.backend.clear_session()
 
@@ -142,8 +145,8 @@ for city in name_list:
     print(city)
     
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
-    create_model(city, graph, dimensions=128) # create and save model if not created yet
-    samples = 350000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 1 million of samples
+    #create_model(city, graph, dimensions=128) # create and save model if not created yet
+    samples = 350000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
     landmark_list_training, distance_list_training, landmark_list_test, distance_list_test = calculate_shortest_path(graph, samples, samples//10) # 100 training 10 test cities
     embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
     
