@@ -62,7 +62,7 @@ def A_star(id1, id2, graph, velocity): # id1 is start node id2 is go to node
 
 
 
-def A_star_priority_queue(id1, id2, graph, velocity): # id1 is start node id2 is go to node
+def A_star_priority_queue(id1, id2, graph, velocity, return_counter=False): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -85,8 +85,11 @@ def A_star_priority_queue(id1, id2, graph, velocity): # id1 is start node id2 is
     g_score[id1] = 0
     f_score[id1] = cf.euclid_distance(id1, id2, graph) / velocity * 3.6 # f score is a lower bound
     priority_queue.put((f_score[id1], id1))
+
+    teller = 1
     
     while priority_queue.empty() is False:
+        
 
         _ , current_node = priority_queue.get() # first attribute is the weight
         
@@ -94,17 +97,24 @@ def A_star_priority_queue(id1, id2, graph, velocity): # id1 is start node id2 is
             continue
         
         if current_node == id2:
-            return g_score[id2]
 
+            if return_counter is True:
+                return g_score[id2], teller
+            return g_score[id2]
+        
+        teller += 1
         for _ ,neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'): #first one is the current node the last argument makes sure we get the length
            
-            tentative_g_score = g_score[current_node] + edge_weight 
+            tentative_g_score = g_score[current_node] + edge_weight
+            
 
             if tentative_g_score < g_score[neighbor_node]:
                 came_from[neighbor_node] = current_node
                 g_score[neighbor_node] = tentative_g_score # CHANGE TO MAX VEL
                 f_score[neighbor_node] = g_score[neighbor_node] + cf.euclid_distance(neighbor_node, id2, graph) / velocity * 3.6 # this will make it a good lower bound
                 priority_queue.put((f_score[neighbor_node], neighbor_node))
+
+                
 
         visited.add(current_node)
 

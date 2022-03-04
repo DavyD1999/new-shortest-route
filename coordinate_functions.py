@@ -113,3 +113,11 @@ def supremum(node_id1, node_id2, graph):
 
     return np.max(np.abs(coor_node1-coor_node2))
 
+def l2(node_id1, node_id2, embedding): # more generalized than euclidian
+    
+    vec1 = embedding[str(node_id1)]
+    vec2 = embedding[str(node_id2)]
+
+    return np.sqrt(np.sum(np.square(vec1-vec2)))
+    
+
