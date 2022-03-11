@@ -57,7 +57,7 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
     landmark_list_validation = random_generated[amount_of_landmarks_training + amount_of_landmarks_test:]
 
     distance_list_training = list()
-    for i, landmark in enumerate(landmark_list_training):
+    for  landmark in landmark_list_training:
         distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
         distance_list_training.append(distances)
         
