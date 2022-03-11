@@ -12,7 +12,7 @@ def NN_predict_travel_time(id1, id2, graph, scaler, embedding, model):
     dist = cf.euclid_distance(id1, id2, graph)
 
     result = np.array(list(vec_1) + list(vec_2))
-    np.append(result,dist) # same type of input data needs to be given
+    result = np.append(result,dist) # same type of input data needs to be given, with or without distance
     
     tot_rescaled = scaler.transform(result.reshape(1,-1)) # rescale it with the original scaler
     input = tf.convert_to_tensor(tot_rescaled)

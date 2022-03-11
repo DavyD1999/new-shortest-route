@@ -101,24 +101,26 @@ def make_graphs(city, number_of_paths):
     
     plt.errorbar(xvals_NN, average_stretch_NN, yerr=standard_dev_on_mean_stretchNN, linewidth=3,elinewidth=3, linestyle='-', capsize=5,barsabove=True, label='Neuraal netwerk')
     plt.legend()
-    plt.savefig(f'./NN_files/rek_NN_{city}_inverse_weights.png', bbox_inches="tight")
+    plt.savefig(f'./NN_files/rek_NN_{city}.png', bbox_inches="tight")
     plt.clf()
     
     
     bins=np.histogram(np.hstack((teller_astar_list,teller_NN)), bins=5)[1] #get the bin edges
     
     plt.hist(teller_astar_list, bins=bins)
+    print(sum(teller_astar_list))
     plt.xlabel('Aantal node expansies')
     plt.ylabel('Aantal in bin')
     
-    plt.savefig(f'./NN_files/aantal_expansies_aster_{city}_inverse_weights.png', bbox_inches="tight")
+    plt.savefig(f'./NN_files/aantal_expansies_aster_{city}.png', bbox_inches="tight")
     plt.clf()
     
     plt.hist(teller_NN, bins=bins)
+    print(sum(teller_NN))
     plt.xlabel('Aantal node expansies')
     plt.ylabel('Aantal in bin')
-    plt.savefig(f'./NN_files/aantal_expansies_NN_{city}_inverse_weights.png', bbox_inches="tight")
+    plt.savefig(f'./NN_files/aantal_expansies_NN_{city}.png', bbox_inches="tight")
     plt.clf()
     
     
-make_graphs('Manhattan', 50)
+make_graphs('Brugge', 50)
