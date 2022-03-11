@@ -11,8 +11,9 @@ import coordinate_functions as cf
 import pickle
 import gc
 from sklearn.decomposition import PCA
-
-
+import osmnx as ox
+import matplotlib as mpl
+import matplotlib.cm as cm
 
 def create_model(city, graph, dimensions, weight):
     """
@@ -57,25 +58,43 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
     landmark_list_validation = random_generated[amount_of_landmarks_training + amount_of_landmarks_test:]
 
     distance_list_training = list()
-    for  landmark in landmark_list_training:
+    maxval = 1
+
+    if recalculate_weights is True: # possible not every edge will be used
+        for u, v in graph.edges():
+            graph[u][v]['transition_probability'] = 1
+            
+    for  j, landmark in enumerate(landmark_list_training):
+        # print(j/len(landmark_list_training))
         distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
         distance_list_training.append(distances)
-        
+
         if recalculate_weights is True:
-            for _, value in paths.items():
+            for value in paths.values():
                 for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
                     if 'transition_probability' in graph[value[x]][value[x+1]]: # check if already exists if so then add it
-                        graph[value[x]][value[x+1]]['transition_probability'] += 1
-
-                    else:
-                        graph[value[x]][value[x+1]]['transition_probability'] = 1
-                    
-            
-
+                        graph[value[x]][value[x+1]]['transition_probability'] += 0.1
+   
+                        if graph[value[x]][value[x+1]]['transition_probability'] > maxval:
+                            maxval = graph[value[x]][value[x+1]]['transition_probability']
+                        
+                        
+                        
+    if recalculate_weights is True:        
+        multi_graph = nx.MultiGraph(graph)
+        # edge_color = ox.plot.get_edge_colors_by_attr(multi_graph, 'transition_probability') # uses attribute to show how big transition probability
     
+        norm = mpl.colors.Normalize(vmin=1, vmax=maxval, clip=True)
+        mapper = cm.ScalarMappable(norm=norm, cmap='viridis')
 
+       
+        ec = [mapper.to_rgba(data['transition_probability']) for u, v, key, data in multi_graph.edges(keys=True, data=True)]
+        fig, ax = ox.plot.plot_graph(multi_graph,node_size=0, show=False ,edge_color=ec, save=False, dpi=200)
+        cb = fig.colorbar(mapper, ax=ax, orientation='horizontal')
+        cb.set_label('transition probability', fontsize = 20)
+        fig.savefig('./test.png')
     distance_list_test = list()
-    for i, landmark in enumerate(landmark_list_test):
+    for landmark in landmark_list_test:
         distances, _ = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
         distance_list_test.append(distances)
 
@@ -83,7 +102,7 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
         return landmark_list_training, distance_list_training, landmark_list_test, distance_list_test
 
     distance_list_validation = list()
-    for i, landmark in enumerate(landmark_list_validation):
+    for landmark in landmark_list_validation:
         distances, _ = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
         distance_list_validation.append(distances)
 
@@ -107,7 +126,6 @@ def add_inverse_travel_time(graph):
         graph[node1][node2]['inverse_travel_time'] = 1/travel_time
 
     return graph
-
 
 def transformer(embedding, landmark_list, distance_list, operation, graph ,add_distance, double_use=False, ): # add distance always needs new keyword
     """
@@ -141,7 +159,7 @@ def transformer(embedding, landmark_list, distance_list, operation, graph ,add_d
             
 def neural_network(input_training, output_training, input_test, output_test, city):
 
-    print(input_training[0])
+    #print(input_training[0])
 
     scaler = preprocessing.StandardScaler() # normalize it here because normalisation in the model does not really work since tensorflow 2.2.0  
     input_training = scaler.fit_transform(input_training)
@@ -232,24 +250,31 @@ def train_network(city, inverse=False, create_model_now=False, recalculate_weigh
     print(city)
     
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
-    if create_model is True:
-        if inverse is True:
-            graph = add_inverse_travel_time(graph)
-            create_model(city, graph, dimensions=128, weight='inverse_travel_time')
     
-        else:
-            create_model(city, graph, dimensions=128, weight='travel_time') # create and save model if not created yet
     samples = 350000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
     landmark_list_training, distance_list_training, landmark_list_test, distance_list_test = calculate_shortest_path(graph, samples, samples//10, recalculate_weights=recalculate_weights) # 100 training 10 test cities
     
     embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
+
+    if create_model_now is True:
+        if inverse is True:
+            graph = add_inverse_travel_time(graph)
+            create_model(city, graph, dimensions=128, weight='inverse_travel_time')
+
+        elif recalculate_weights is True:
+             create_model(city, graph, dimensions=128, weight='transition_probability')
+    
+        else:
+            create_model(city, graph, dimensions=128, weight='travel_time') # create and save model if not created yet
     
     input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, graph ,double_use=True, add_distance=True) # big file
     input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
          concatenation, graph,add_distance=True) # big file, FOR TEST DATA DOULB
 
-    neural_network(input_training, output_training, input_test, output_test, city)
+    
 
+    neural_network(input_training, output_training, input_test, output_test, city)
+    
     gc.collect()
 
 def NN_multiple_cities(input_training, output_training, input_test, output_test, input_validation, output_validation, name):
@@ -436,7 +461,7 @@ def train_network_CNN(city):
 
 # train_network('Manhattan', inverse=True) # 10.16666030883789
 #train_network('Manhattan', inverse=False) #10.130
-train_network('Brugge', inverse=True, create_model_now=False, recalculate_weights=True) #  9.8444824218
+train_network('Brugge', inverse=False, create_model_now=False, recalculate_weights=True) #  9.8444824218
 #train_network('Brugge', inverse=False) # 9.399
 #train_network('New Dehli', inverse=True) #11.31
 #train_network('New Dehli', inverse=False) 13.698349952697754
