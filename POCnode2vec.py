@@ -71,12 +71,11 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
         if recalculate_weights is True: #
             for value in paths.values():
                 for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
-                    if 'transition_probability' in graph[value[x]][value[x+1]]: # check if already exists if so then add a certain value
-                        graph[value[x]][value[x+1]]['transition_probability'] += 0.1
-   
-                        if graph[value[x]][value[x+1]]['transition_probability'] > maxval:
-                            maxval = graph[value[x]][value[x+1]]['transition_probability']
-                        
+                    graph[value[x]][value[x+1]]['transition_probability'] += 0.1
+
+                    if graph[value[x]][value[x+1]]['transition_probability'] > maxval:
+                        maxval = graph[value[x]][value[x+1]]['transition_probability']
+                    
                         
                         
     if recalculate_weights is True:        
