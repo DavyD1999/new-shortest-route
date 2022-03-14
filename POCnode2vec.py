@@ -23,7 +23,6 @@ def create_model(city, graph, dimensions, weight):
 
 
     for node1, node2, _ in graph.edges(data=weight): # adds inverse traveltime to graph
-    
         graph[node1][node2][weight] # just make sure the weight is actually in the graph
         break
         
@@ -60,7 +59,7 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
     distance_list_training = list()
     maxval = 1
 
-    if recalculate_weights is True: # possible not every edge will be used
+    if recalculate_weights is True: # possible not every edge will be used so make sure at least has a probability
         for u, v in graph.edges():
             graph[u][v]['transition_probability'] = 1
             
@@ -69,10 +68,10 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
         distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
         distance_list_training.append(distances)
 
-        if recalculate_weights is True:
+        if recalculate_weights is True: #
             for value in paths.values():
                 for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
-                    if 'transition_probability' in graph[value[x]][value[x+1]]: # check if already exists if so then add it
+                    if 'transition_probability' in graph[value[x]][value[x+1]]: # check if already exists if so then add a certain value
                         graph[value[x]][value[x+1]]['transition_probability'] += 0.1
    
                         if graph[value[x]][value[x+1]]['transition_probability'] > maxval:
@@ -86,13 +85,13 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
     
         norm = mpl.colors.Normalize(vmin=1, vmax=maxval, clip=True)
         mapper = cm.ScalarMappable(norm=norm, cmap='viridis')
-
-       
         ec = [mapper.to_rgba(data['transition_probability']) for u, v, key, data in multi_graph.edges(keys=True, data=True)]
-        fig, ax = ox.plot.plot_graph(multi_graph,node_size=0, show=False ,edge_color=ec, save=False, dpi=200)
+        fig, ax = ox.plot.plot_graph(multi_graph,node_size=0, show=False ,edge_color=ec, save=False)
+        #ax.set_facecolor('w')
         cb = fig.colorbar(mapper, ax=ax, orientation='horizontal')
-        cb.set_label('transition probability', fontsize = 20)
-        fig.savefig('./test.png')
+        cb.set_label('transition weights', fontsize = 20)
+        fig.savefig('./test3.png',dpi=500)
+        
     distance_list_test = list()
     for landmark in landmark_list_test:
         distances, _ = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
@@ -157,15 +156,13 @@ def transformer(embedding, landmark_list, distance_list, operation, graph ,add_d
     output_array = np.array(output_array, dtype=np.float16)
     return input_array, output_array
             
-def neural_network(input_training, output_training, input_test, output_test, city):
-
-    #print(input_training[0])
+def neural_network(input_training, output_training, input_test, output_test,input_validation, output_validation ,city):
 
     scaler = preprocessing.StandardScaler() # normalize it here because normalisation in the model does not really work since tensorflow 2.2.0  
     input_training = scaler.fit_transform(input_training)
-
+    
     input_test = scaler.transform(input_test) # same normalization on the test data
-
+    input_validation = scaler.transform(input_validation)
     #pca = PCA(n_components=250)
     #input_training = pca.fit_transform(input_training)
     #input_test = pca.transform(input_test)
@@ -185,6 +182,7 @@ def neural_network(input_training, output_training, input_test, output_test, cit
         tf.keras.layers.Dropout(0.2, seed=42),
         tf.keras.layers.Dense(1, activation='relu')
     ])
+    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=1, restore_best_weights=True)
     
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
@@ -193,8 +191,8 @@ def neural_network(input_training, output_training, input_test, output_test, cit
         metrics=[tf.keras.losses.MeanAbsolutePercentageError()]
     )
           
-    print(model.fit(input_training, output_training, epochs=4, workers=8, verbose=2, use_multiprocessing=True))
-
+    print(model.fit(input_training, output_training, epochs=10, workers=8, verbose=2,validation_data=(input_validation, output_validation), batch_size=128 ,use_multiprocessing=True, callbacks=[callback]))
+    
     print(model.evaluate(input_test, output_test, verbose=2))
 
     
@@ -252,28 +250,31 @@ def train_network(city, inverse=False, create_model_now=False, recalculate_weigh
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
     
     samples = 350000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
-    landmark_list_training, distance_list_training, landmark_list_test, distance_list_test = calculate_shortest_path(graph, samples, samples//10, recalculate_weights=recalculate_weights) # 100 training 10 test cities
+    landmark_list_training, distance_list_training, landmark_list_test, distance_list_test, landmark_list_validation, distance_list_validation = calculate_shortest_path(graph, samples, samples//5, samples//5, recalculate_weights=recalculate_weights) # 100 training 10 test cities
     
     embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
 
     if create_model_now is True:
+        assert inverse != True or recalculate_weights != True, "not allowed"
         if inverse is True:
             graph = add_inverse_travel_time(graph)
             create_model(city, graph, dimensions=128, weight='inverse_travel_time')
 
         elif recalculate_weights is True:
-             create_model(city, graph, dimensions=128, weight='transition_probability')
-    
+            # the recalculated weights were done if necessary in de calculate shortest path function this modifies the graph (pointerwise like c++)
+            create_model(city, graph, dimensions=128, weight='transition_probability')
+            
         else:
             create_model(city, graph, dimensions=128, weight='travel_time') # create and save model if not created yet
-    
+        gc.collect()
+        
     input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, graph ,double_use=True, add_distance=True) # big file
     input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
          concatenation, graph,add_distance=True) # big file, FOR TEST DATA DOULB
+    input_validation, output_validation = transformer(embedding, landmark_list_validation, distance_list_validation, 
+         concatenation, graph,add_distance=True)
 
-    
-
-    neural_network(input_training, output_training, input_test, output_test, city)
+    neural_network(input_training, output_training, input_test, output_test, input_validation, output_validation, city)
     
     gc.collect()
 
@@ -461,7 +462,7 @@ def train_network_CNN(city):
 
 # train_network('Manhattan', inverse=True) # 10.16666030883789
 #train_network('Manhattan', inverse=False) #10.130
-train_network('Brugge', inverse=False, create_model_now=False, recalculate_weights=True) #  9.8444824218
+train_network('New Dehli', inverse=False, create_model_now=False, recalculate_weights=True) #  9.8444824218
 #train_network('Brugge', inverse=False) # 9.399
 #train_network('New Dehli', inverse=True) #11.31
 #train_network('New Dehli', inverse=False) 13.698349952697754
