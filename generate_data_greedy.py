@@ -87,6 +87,19 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
             reached_end_node[i] = 1
             result_stretch[i] = result / weight_path[i]
 
+    elif function == gp.priority_queue_new_evaluation_function:
+        clf = gp.add_amount_of_visited_weights(graph, 15)
+        print('gestart')
+        for i in range(number_of_routes):  # do the greedy functions
+            start_time = time.time() 
+            result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, weight_function=clf, ratio_travelled=True)  # result like route weight of the desired path
+            ratio_travelled_list[i] = ratio_travelled
+    
+            if result != np.inf:  # only calculate how long the path was once one was found with greedy forwarding  else takes so long
+                total_time += time.time() - start_time  # only track time if succesful
+                reached_end_node[i] = 1
+                result_stretch[i] = result / weight_path[i]
+                
     elif function == gtas.greedy_forwarding_then_a_star: #or function == a_star.A_star_priority_queue:
 
       average_velocity = fgd.get_weigted_average_velocity(graph)
@@ -188,7 +201,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
                                            # this is quite a weighty way of doing it 
 
     timing_array[x] = total_time / sum(arrived)
-
+    print(f'timing array zegt{timing_array}')
     # let's now calculate the standard deviation on the mean stretch....
     squared_sum = np.zeros(len(average_stretch))
     n = np.zeros(len(average_stretch)) # to keep track how many are in each bin
@@ -254,7 +267,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
 
   plt.barh(foldernames, timing_array)
   x = np.arange(len(foldernames))
-  plt.yticks(x, ['normaal', 'gravity pressure', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
+  plt.yticks(x, ['gp met nieuw gewicht','normaal', 'gravity pressure', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
   #plt.title(f'{name} execution time per succesful path')
   plt.xlabel('uitvoeringstijd per pad (s)')
   plt.xscale('log')
@@ -263,18 +276,18 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
 
   
   
-name_list = ['Brugge','New Dehli','Nairobi', 'Rio de Janeiro', 'Manhattan']
+name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
 # name_list = ['Manhattan','New Dehli','Nairobi', 'Rio de Janeiro','Brugge']
 
 # name_list = ['Manhattan']
 
-functions = [gf.greedy_forwarding, gp.gravity_pressure, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, NNgp.gravity_pressure_embedding, 
+functions = [gp.priority_queue_new_evaluation_function,a_star.A_star_priority_queue ,gp.gravity_pressure, gf.greedy_forwarding, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, NNgp.gravity_pressure_embedding, 
 
 #functions = [hr.hyperbolic_greedy_forwarding]
 #functions = [a_star.A_star_priority_queue]
 
-foldernames = ['gp_with_embedding','normal_greedy', 'gravity_pressure', 'greedy_then_a_star', 'greedy_rpf','greedy_manhattan','greedy_hyperbolic'] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
+foldernames = ['semester2/weighted_expansion', 'irrelevanat/', 'semester1/gravity_pressure', 'semester1/normal_greedy', 'semester1/greedy_then_a_star', 'semester1/greedy_rpf','semester1/greedy_manhattan','semester1/greedy_hyperbolic',] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
 #'pure_A_star'
 #foldernames = ['pure_A_star']
 #foldernames = ['greedy_hyperbolic']

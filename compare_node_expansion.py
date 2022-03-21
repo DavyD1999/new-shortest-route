@@ -9,6 +9,7 @@ import random
 import pickle
 import networkx as nx
 from gensim.models import KeyedVectors
+import time
 
 mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
@@ -51,19 +52,19 @@ def prepare_plot_errorbar(computed_list, weight_path,  binsize):
     
 
 def make_graphs(city, number_of_paths):
-    model = tf.keras.models.load_model(f'./NNcities/{city}.h5', compile=False) # false compile because of bug
+    model = tf.keras.models.load_model(f'./semester2/NNcities/{city}.h5', compile=False) # false compile because of bug
     
     model.compile(
             optimizer=tf.keras.optimizers.SGD(learning_rate=0.000001*46), # batch size is standard 32 
             loss='mse', 
             metrics=[tf.keras.losses.MeanAbsolutePercentageError()]
         )
-    with open(f'./saved_scalers/{city}.pkl', 'rb') as f:
+    with open(f'./semester2/saved_scalers/{city}.pkl', 'rb') as f:
         scaler = pickle.load(f)
     
     
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
-    embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
+    embedding = KeyedVectors.load(f'./semester2/node2vec_models/{city}.wordvectors', mmap='r')
     
     node_list = list(graph.nodes())
     
@@ -75,15 +76,24 @@ def make_graphs(city, number_of_paths):
     len_astar, teller_astar_list = list(), list()
     len_NN, teller_NN = list(), list()
     weight_path = list()
+
+    time_normal = 0
+    time_NN = 0
     
     for i in range(len(start_nodes)):
         average_vel = get_weigted_average_velocity(graph)
+
+        start_time = time.time()
         a = a_star.A_star_priority_queue(start_nodes[i], end_nodes[i], graph, average_vel, return_counter = True)
-    
+        time_normal += time.time() - start_time
+            
         len_astar.append(a[0])
         teller_astar_list.append(a[1])
-    
+
+        start_time = time.time()
         b = NNforSearch.A_star_priority_queue_NN(start_nodes[i], end_nodes[i], graph, scaler, embedding, model, return_counter=True)
+        time_NN = time.time() - start_time
+        
         len_NN.append(b[0])
         teller_NN.append(b[1])
     
@@ -94,14 +104,14 @@ def make_graphs(city, number_of_paths):
     xvals_astar, average_stretch_astar, standard_dev_on_mean_stretch_astar = prepare_plot_errorbar(len_astar, weight_path,  binsize=150)                                    
     plt.ylabel('Gemiddelde rek')
     plt.xlabel('Snelste reistijd (s)')
-    plt.errorbar(xvals_astar, average_stretch_astar, yerr=standard_dev_on_mean_stretch_astar, linewidth=3, elinewidth=3, linestyle='--', capsize=5,barsabove=True, label='A*')
+    plt.errorbar(xvals_astar, average_stretch_astar, yerr=standard_dev_on_mean_stretch_astar, linewidth=3, elinewidth=3, linestyle='--', capsize=5,barsabove=True, label='Hemelsbrede afstand met snelheid')
     
     
     xvals_NN, average_stretch_NN, standard_dev_on_mean_stretchNN = prepare_plot_errorbar(len_NN, weight_path,  binsize=150)                                    
     
     plt.errorbar(xvals_NN, average_stretch_NN, yerr=standard_dev_on_mean_stretchNN, linewidth=3,elinewidth=3, linestyle='-', capsize=5,barsabove=True, label='Neuraal netwerk')
     plt.legend()
-    plt.savefig(f'./NN_files/rek_NN_{city}.png', bbox_inches="tight")
+    plt.savefig(f'./semester2/NN_files/rek_NN_{city}.png', bbox_inches="tight")
     plt.clf()
     
     
@@ -112,15 +122,17 @@ def make_graphs(city, number_of_paths):
     plt.xlabel('Aantal node expansies')
     plt.ylabel('Aantal in bin')
     
-    plt.savefig(f'./NN_files/aantal_expansies_aster_{city}.png', bbox_inches="tight")
+    plt.savefig(f'./semester2/NN_files/aantal_expansies_aster_{city}.png', bbox_inches="tight")
     plt.clf()
     
     plt.hist(teller_NN, bins=bins)
     print(sum(teller_NN))
     plt.xlabel('Aantal node expansies')
     plt.ylabel('Aantal in bin')
-    plt.savefig(f'./NN_files/aantal_expansies_NN_{city}.png', bbox_inches="tight")
+    plt.savefig(f'./semester2/NN_files/aantal_expansies_NN_{city}.png', bbox_inches="tight")
     plt.clf()
-    
-    
+
+    print(time_normal/number_of_paths)
+    print(time_NN/number_of_paths)
+       
 make_graphs('Brugge', 50)

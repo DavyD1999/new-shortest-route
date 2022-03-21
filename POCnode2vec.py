@@ -21,7 +21,6 @@ def create_model(city, graph, dimensions, weight):
     strings of the actual node ids
     """
 
-
     for node1, node2, _ in graph.edges(data=weight): # adds inverse traveltime to graph
         graph[node1][node2][weight] # just make sure the weight is actually in the graph
         break
@@ -36,11 +35,11 @@ def create_model(city, graph, dimensions, weight):
     print(time.time()-start_time)
     print('starts saving')
     
-    model.save(f'./node2vec_models/{city}.model')
+    model.save(f'./semester2/node2vec_models/{city}.model')
 
     word_vectors = model.wv
 
-    word_vectors.save(f'./node2vec_models/{city}.wordvectors')
+    word_vectors.save(f'./semester2/node2vec_models/{city}.wordvectors')
 
 # create_model('Brugge', graph, dimensions=128) 
 
@@ -65,19 +64,22 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
             
     for  j, landmark in enumerate(landmark_list_training):
         # print(j/len(landmark_list_training))
-        distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
-        distance_list_training.append(distances)
+       
 
-        if recalculate_weights is True: #
+        if recalculate_weights is True: 
+            distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
             for value in paths.values():
                 for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
                     graph[value[x]][value[x+1]]['transition_probability'] += 0.1
 
                     if graph[value[x]][value[x+1]]['transition_probability'] > maxval:
                         maxval = graph[value[x]][value[x+1]]['transition_probability']
-                    
+
+        else:
+            distances, _ = nx.single_source_dijkstra(graph, landmark, weight='travel_time') # no need for storing paths
+        distance_list_training.append(distances)
                         
-                        
+    """
     if recalculate_weights is True:        
         multi_graph = nx.MultiGraph(graph)
         # edge_color = ox.plot.get_edge_colors_by_attr(multi_graph, 'transition_probability') # uses attribute to show how big transition probability
@@ -88,9 +90,13 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
         fig, ax = ox.plot.plot_graph(multi_graph,node_size=0, show=False ,edge_color=ec, save=False)
         #ax.set_facecolor('w')
         cb = fig.colorbar(mapper, ax=ax, orientation='horizontal')
-        cb.set_label('transition weights', fontsize = 20)
-        fig.savefig('./test3.png',dpi=500)
-        
+        cb.set_label('Booggewichten', fontsize = 20)
+        fig.savefig('./New Dehli.png',dpi=500)
+    """                    
+    
+
+    gc.collect()
+    
     distance_list_test = list()
     for landmark in landmark_list_test:
         distances, _ = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
@@ -155,16 +161,21 @@ def transformer(embedding, landmark_list, distance_list, operation, graph ,add_d
     output_array = np.array(output_array, dtype=np.float16)
     return input_array, output_array
             
-def neural_network(input_training, output_training, input_test, output_test,input_validation, output_validation ,city):
+def neural_network(input_training, output_training, input_test, output_test,input_validation, output_validation ,city, do_pca=False):
 
     scaler = preprocessing.StandardScaler() # normalize it here because normalisation in the model does not really work since tensorflow 2.2.0  
     input_training = scaler.fit_transform(input_training)
-    
+    print(input_training[0])
     input_test = scaler.transform(input_test) # same normalization on the test data
     input_validation = scaler.transform(input_validation)
-    #pca = PCA(n_components=250)
-    #input_training = pca.fit_transform(input_training)
-    #input_test = pca.transform(input_test)
+    
+    if do_pca is True:
+        print('is hier')
+        pca = PCA(n_components=257)
+
+        input_training = pca.fit_transform(input_training)
+        input_validation = pca.transform(input_validation)
+        input_test = pca.transform(input_test)
 
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(256, activation='relu'),
@@ -196,62 +207,75 @@ def neural_network(input_training, output_training, input_test, output_test,inpu
 
     
     # save needed stuff for later in the A* function with this input
-    with open(f'./saved_scalers/{city}.pkl', 'wb') as f:
+    with open(f'./semester2/saved_scalers/{city}.pkl', 'wb') as f:
         pickle.dump(scaler, f)
 
-    #with open(f'./saved_pca/{city}.pkl', 'wb') as f:
+    #with open(f'./semester2/saved_pca/{city}.pkl', 'wb') as f:
         #pickle.dump(pca, f)
 
         
-    model.save(f'./NNcities/{city}.h5') # load it in with tf.keras.models.load_model('saved_model/my_model')
+    model.save(f'./semester2/NNcities/{city}.h5') # load it in with tf.keras.models.load_model('saved_model/my_model')
     
     tf.keras.backend.clear_session()
+    gc.collect()
 
 name_list = ['Manhattan','Brugge','New Dehli','Nairobi', 'Rio de Janeiro']
 
-def evaluate_network(city, trained_city):
-    model = tf.keras.models.load_model(f'./NNcities/{trained_city}.h5', compile=False) # false compile because of bug
+def evaluate_network(city, trained_city, do_pca=False, create_model_now=True, recalculate_weights=False):
+    model = tf.keras.models.load_model(f'./semester2/NNcities/{trained_city}.h5', compile=False) # false compile because of bug
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
         #optimizer=tf.keras.optimizers.SGD(learning_rate=0.000001*46), # batch size is standard 32 
         loss='mse', 
         metrics=[tf.keras.losses.MeanAbsolutePercentageError()]
     )
-    with open(f'./saved_scalers/{city}.pkl', 'rb') as f:
-        scaler = pickle.load(f)
+    #with open(f'./semester2/saved_scalers/{city}.pkl', 'rb') as f:
+        #scaler = pickle.load(f)
 
-    with open(f'./saved_pca/{city}.pkl', 'rb') as f:
-        pca = pickle.load(f)
+    #with open(f'./semester2/saved_pca/{city}.pkl', 'rb') as f:
+        #pca = pickle.load(f)
 
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
-    
-    #create_model(city, graph, dimensions=128) # create and save model if not created yet
     samples = 150000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
-    _, _, landmark_list_test, distance_list_test = calculate_shortest_path(graph, samples, samples//10) # 100 training 10 test cities
+
+    if recalculate_weights is True:
+        landmark_list_test, distance_list_test, _, _ = calculate_shortest_path(graph, samples,0) 
+
+    if create_model is True:
+        if recalculate_weights is True:
+            create_model(city, graph, dimensions=128, weight='transition_probability')
+        else:
+            create_model(city, graph, dimensions=128) # create and save model if not created yet
     
-    embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
+    samples = 150000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
+
+    
+    embedding = KeyedVectors.load(f'./semester2/node2vec_models/{city}.wordvectors', mmap='r')
     
     input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
          concatenation, graph,add_distance=True)
 
-    input_test = scaler.transform(input_test)
-    input_test = pca.transform(input_test)
+
+    scaler = preprocessing.StandardScaler() # normalize it here because normalisation in the model does not really work since tensorflow 2.2.0  
+    input_test = scaler.fit_transform(input_test)
+    if do_pca is True:
+        pca = PCA(n_components=257)
+        input_test = pca.fit_transform(input_test)
     print(city)
     print(model.evaluate(input_test, output_test, verbose=2))
 
 
-def train_network(city, inverse=False, create_model_now=False, recalculate_weights=True):
+def train_network(city, inverse=False, create_model_now=False, recalculate_weights=True, do_pca=False):
     """
     train network for 1 city
     """
-    print(city)
-    
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
     
-    samples = 350000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
+    samples = 250000 // (graph.number_of_nodes())
+    print(samples)
     landmark_list_training, distance_list_training, landmark_list_test, distance_list_test, landmark_list_validation, distance_list_validation = calculate_shortest_path(graph, samples, samples//5, samples//5, recalculate_weights=recalculate_weights) # 100 training 10 test cities
     
-    embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
+    embedding = KeyedVectors.load(f'./semester2/node2vec_models/{city}.wordvectors', mmap='r')
 
     if create_model_now is True:
         assert inverse != True or recalculate_weights != True, "not allowed"
@@ -266,14 +290,14 @@ def train_network(city, inverse=False, create_model_now=False, recalculate_weigh
         else:
             create_model(city, graph, dimensions=128, weight='travel_time') # create and save model if not created yet
         gc.collect()
-        
+
     input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, graph ,double_use=True, add_distance=True) # big file
     input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
          concatenation, graph,add_distance=True) # big file, FOR TEST DATA DOULB
     input_validation, output_validation = transformer(embedding, landmark_list_validation, distance_list_validation, 
          concatenation, graph,add_distance=True)
 
-    neural_network(input_training, output_training, input_test, output_test, input_validation, output_validation, city)
+    neural_network(input_training, output_training, input_test, output_test, input_validation, output_validation, city, do_pca=do_pca)
     
     gc.collect()
 
@@ -308,7 +332,7 @@ def NN_multiple_cities(input_training, output_training, input_test, output_test,
     print(model.fit(input_training, output_training, epochs=10, workers=8, verbose=1,  validation_data=(input_validation, output_validation), use_multiprocessing=True, callbacks=[callback], batch_size=128))
     print(model.evaluate(input_test, output_test, verbose=2))
 
-    model.save(f'./NNcities/{name}.h5')
+    model.save(f'./semester2/NNcities/{name}.h5')
 
 def train_network_cities(cities, name):
     """
@@ -327,7 +351,7 @@ def train_network_cities(cities, name):
         
         landmark_list_training, distance_list_training, landmark_list_test, distance_list_test, landmark_list_validation, distance_list_validation = calculate_shortest_path(graph, samples, samples//5, samples//5) # 100 training 10 test cities
 
-        embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
+        embedding = KeyedVectors.load(f'./semester2/node2vec_models/{city}.wordvectors', mmap='r')
         
         input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, graph ,double_use=True, add_distance=True) # big file
         input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
@@ -380,7 +404,7 @@ def evaluate_network_new_transformations(graph_name, NN_name, pca=False, add_dis
     samples = 10 # we want with the double function later end up with approx 700000million of samples
         
     landmark_list_training, distance_list_training, _, _ = calculate_shortest_path(graph, samples, 0)# 100 training 10 test cities
-    embedding = KeyedVectors.load(f'./node2vec_models/{graph_name}.wordvectors', mmap='r')
+    embedding = KeyedVectors.load(f'./semester2/node2vec_models/{graph_name}.wordvectors', mmap='r')
 
     input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, graph ,double_use=False, add_distance=add_distance)
 
@@ -391,7 +415,7 @@ def evaluate_network_new_transformations(graph_name, NN_name, pca=False, add_dis
         pca = PCA(n_components=256)
         input_training = pca.fit_transform(input_training)
 
-    model = tf.keras.models.load_model(f'./NNcities/{NN_name}.h5', compile=False) # false compile because of bug
+    model = tf.keras.models.load_model(f'./semester2/NNcities/{NN_name}.h5', compile=False) # false compile because of bug
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), 
         loss='mse', 
@@ -415,7 +439,7 @@ def train_network_CNN(city):
     
     landmark_list_training, distance_list_training, landmark_list_test, distance_list_test, landmark_list_validation, distance_list_validation = calculate_shortest_path(graph, samples, samples//5, samples//5) # 100 training 10 test cities
 
-    embedding = KeyedVectors.load(f'./node2vec_models/{city}.wordvectors', mmap='r')
+    embedding = KeyedVectors.load(f'./semester2/node2vec_models/{city}.wordvectors', mmap='r')
 
     # distance left out here for ez purpouse
     input_training, output_training = transformer(embedding, landmark_list_training, distance_list_training, concatenation, graph ,double_use=True, add_distance=False) # big file
@@ -453,7 +477,7 @@ def train_network_CNN(city):
     print(model.fit(input_training, output_training, epochs=10, workers=8, verbose=1,  validation_data=(input_validation, output_validation), use_multiprocessing=True, callbacks=[callback], batch_size=128))
     print(model.evaluate(input_test, output_test, verbose=2))
 
-    model.save(f'./NNcities/{city}.h5')
+    model.save(f'./semester2/NNcities/{city}.h5')
     
 
 #train_network_CNN('Manhattan')
@@ -461,7 +485,10 @@ def train_network_CNN(city):
 
 # train_network('Manhattan', inverse=True) # 10.16666030883789
 #train_network('Manhattan', inverse=False) #10.130
-train_network('New Dehli', inverse=False, create_model_now=False, recalculate_weights=True) #  9.8444824218
-#train_network('Brugge', inverse=False) # 9.399
+#train_network('New Dehli', inverse=False, create_model_now=True, recalculate_weights=True, do_pca=True) #  9.8444824218
+#evaluate_network('Brugge', 'New Dehli', do_pca=True, create_model_now=True,  recalculate_weights=True)
+train_network('Brugge', create_model_now=False, recalculate_weights=False) # 9.399
+#train_network('Nairobi', create_model_now=False, recalculate_weights=False)
+#train_network('Rio de Janeiro', create_model_now=True, recalculate_weights=True)
 #train_network('New Dehli', inverse=True) #11.31
 #train_network('New Dehli', inverse=False) 13.698349952697754
