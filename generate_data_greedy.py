@@ -88,18 +88,19 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
             result_stretch[i] = result / weight_path[i]
 
     elif function == gp.priority_queue_new_evaluation_function:
-        clf = gp.add_amount_of_visited_weights(graph, 15)
+        clf, scaler = gp.add_amount_of_visited_weights(graph, 20)
         print('gestart')
+        tot_teller = 0
         for i in range(number_of_routes):  # do the greedy functions
             start_time = time.time() 
-            result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, weight_function=clf, ratio_travelled=True)  # result like route weight of the desired path
+            result, ratio_travelled, teller = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, weight_function=clf, scaler=scaler, ratio_travelled=True, return_counter=True)  # result like route weight of the desired path
             ratio_travelled_list[i] = ratio_travelled
-    
+            tot_teller += teller
             if result != np.inf:  # only calculate how long the path was once one was found with greedy forwarding  else takes so long
                 total_time += time.time() - start_time  # only track time if succesful
                 reached_end_node[i] = 1
                 result_stretch[i] = result / weight_path[i]
-                
+        print(tot_teller)            
     elif function == gtas.greedy_forwarding_then_a_star: #or function == a_star.A_star_priority_queue:
 
       average_velocity = fgd.get_weigted_average_velocity(graph)
@@ -119,20 +120,20 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
 
     elif function == a_star.A_star_priority_queue:
         average_velocity = fgd.get_weigted_average_velocity(graph)
-
+        tot_teller = 0
         for i in range(number_of_routes): # do the greedy functions
             start_time = time.time()
-
             
-            result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, velocity=average_velocity),1 # pure a star always finds a way
-
-            ratio_travelled_list[i] = ratio_travelled
+            
+            result, teller = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, velocity=average_velocity,  return_counter=True) # pure a star always finds a way
+            tot_teller += teller
+            ratio_travelled_list[i] = 1
 
             if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
                 total_time += time.time() - start_time # only track time if succesful
                 reached_end_node[i] = 1
                 result_stretch[i] = result/weight_path[i]
-                
+        print(tot_teller)        
         """
           
         

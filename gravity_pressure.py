@@ -9,27 +9,6 @@ import sklearn.linear_model
 from queue import PriorityQueue
 
 random.seed(42)
-"""
-inefficient function don't use
-def remove_doubles(route_list): # will return a route list without doubles and thus all the in between nodes removed too
-
-    inside_dict = dict() # dictionary since we want the last index as well
-
-    index = -1
-
-    for i in range(len(route_list) - 1, -1 , -1):
-
-        if route_list[i] in inside_dict.keys():
-            index = i;
-        
-        else:
-            inside_dict[route_list[i]] = i
-
-    if index == -1:
-        return route_list
-
-    return remove_doubles(route_list[ :index]  + route_list[inside_dict[route_list[index]]: ]) # there might be more doubles left, 
-"""
 
 def remove_doubles2(route_list):
     
@@ -156,10 +135,9 @@ def gravity_pressure(id1, id2, graph, distance_function=cf.euclid_distance, rati
   return sec_travelled_removed
 
 def add_amount_of_visited_weights(graph, number_of_landmarks):
-    assert 0 == 1, 'make sure sampling strategy is good look at chosen landarks'
 
     landmarks = random.choices(list(graph.nodes()), k=3*number_of_landmarks//4)
-
+    print(landmarks)
     path_list = list()
     
     for u, v in graph.edges():
@@ -175,7 +153,7 @@ def add_amount_of_visited_weights(graph, number_of_landmarks):
     x_list, y_list = list(), list()
 
     landmarks = random.choices(list(graph.nodes()), k=number_of_landmarks//4) # new landmarks else amount of times visited makes no sense
-
+    print(landmarks)
     for landmark in landmarks: 
         distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
         for value in paths.values():
@@ -187,7 +165,7 @@ def add_amount_of_visited_weights(graph, number_of_landmarks):
 
                 amount_travelled = graph[value[x]][value[x+1]]['amount_travelled']
                 #x_list.append([np.log(amount_travelled), np.log(1 + euclid_distance), graph[value[x]][value[x+1]]['travel_time']])
-                x_list.append([np.log(amount_travelled), np.log(1 + euclid_distance), graph[value[x]][value[x+1]]['travel_time'], euclid_distance-previous])
+                x_list.append([amount_travelled, euclid_distance, graph[value[x]][value[x+1]]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1 + euclid_distance), 1 / graph[value[x]][value[x+1]]['travel_time']])
                 # eucldian distance between the destination and the neighbor node we are actually going to
                 y_list.append(1)
                 
@@ -200,10 +178,14 @@ def add_amount_of_visited_weights(graph, number_of_landmarks):
                     euclid_distance = cf.euclid_distance(chosen_neighbor, value[-1], graph)
 
                     # x_list.append([np.log(amount_travelled), np.log(1 + euclid_distance), graph[value[x]][chosen_neighbor]['travel_time']])
-                    x_list.append([np.log(amount_travelled), np.log(1 + euclid_distance), graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous])
+                    x_list.append([amount_travelled,  euclid_distance, graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / graph[value[x]][chosen_neighbor]['travel_time']])
                     y_list.append(0)
 
     x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x_list, y_list, test_size=0.25, random_state=42, shuffle=True)
+
+    scaler = sklearn.preprocessing.StandardScaler()
+    x_train = scaler.fit_transform(x_train)
+    x_test = scaler.transform(x_test)
     
     logistic_regression = sklearn.linear_model.LogisticRegression(random_state=42)
 
@@ -212,7 +194,8 @@ def add_amount_of_visited_weights(graph, number_of_landmarks):
     print(clf.score(x_train, y_train))
     print(clf.score(x_test, y_test))
     print(clf.coef_)
-    return clf
+
+    return clf, scaler
     
 #graph = nx.read_gpickle(f'./graph_pickle/Brugge.gpickle')
 #add_amount_of_visited_weights(graph, 7)
@@ -260,6 +243,7 @@ def weighted_gravity_pressure(id1, id2, graph, weight_function, ratio_travelled=
     min_function = inf
     for neighbor_node, amount_travelled in canidates.items(): # try to minimize the loss so get as close as possible
         euclid_distance = cf.euclid_distance(id2, neighbor_node, graph)
+        
         function_result = - output_function(weight_function.coef_, np.array([np.log(amount_travelled), np.log(1 + euclid_distance), graph[current_node][neighbor_node]['travel_time'], euclid_distance-previous])) # minus since this predicts prob of going to this node so higher -> better
         if function_result < min_function:
             node_with_min_distance = neighbor_node
@@ -273,7 +257,7 @@ def weighted_gravity_pressure(id1, id2, graph, weight_function, ratio_travelled=
     current_node = node_with_min_distance
     route.append(current_node) 
   
-
+  
   # now we can substract the stretch we did too much aka the double or triple visited nodes
   route_removed_extra_steps = remove_doubles2(route)
 
@@ -454,7 +438,7 @@ inf = np.inf
 
 """
 
-def priority_queue_new_evaluation_function(id1, id2, graph,  weight_function, ratio_travelled=False): # id1 is start node id2 is go to node
+def priority_queue_new_evaluation_function(id1, id2, graph, weight_function, scaler,ratio_travelled=False, return_counter=False): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -462,7 +446,6 @@ def priority_queue_new_evaluation_function(id1, id2, graph,  weight_function, ra
     assert id1 in total_nodes and id2 in total_nodes , "node_id is not in the graph"
 
     came_from = dict()
-
 
     visited = set()
     priority_queue = PriorityQueue()
@@ -489,8 +472,11 @@ def priority_queue_new_evaluation_function(id1, id2, graph,  weight_function, ra
         if current_node == id2:
             
             if ratio_travelled is False:
+                
                 return g_score[id2]
-
+                
+            if return_counter is True:
+                return g_score[id2], 1,teller
             return g_score[id2], 1 
         
         teller += 1
@@ -506,8 +492,12 @@ def priority_queue_new_evaluation_function(id1, id2, graph,  weight_function, ra
                 
                 amount_travelled = graph[current_node][neighbor_node]['amount_travelled']
                 euclid_distance = cf.euclid_distance(neighbor_node, id2, graph)
-            
-                f_score[neighbor_node] = -output_function(weight_function.coef_, np.array([np.log(amount_travelled), np.log(1 + euclid_distance), graph[current_node][neighbor_node]['travel_time'], euclid_distance-previous])) # expand lowest first
+                # amount_travelled,  euclid_distance, graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / graph[value[x]][chosen_neighbor]['travel_time']
+                
+                for_function = np.array([[amount_travelled,  euclid_distance, graph[current_node][neighbor_node]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / graph[current_node][neighbor_node]['travel_time']]])
+                for_function = scaler.transform(for_function)
+                
+                f_score[neighbor_node] = - output_function(weight_function.coef_, for_function) # expand lowest first
                 priority_queue.put((f_score[neighbor_node], neighbor_node))
 
         visited.add(current_node)

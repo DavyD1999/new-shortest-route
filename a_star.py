@@ -97,7 +97,7 @@ def A_star_priority_queue(id1, id2, graph, velocity, return_counter=False): # id
             continue
         
         if current_node == id2:
-
+            
             if return_counter is True:
                 return g_score[id2], teller
             return g_score[id2]

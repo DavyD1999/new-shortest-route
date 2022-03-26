@@ -94,7 +94,6 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
         fig.savefig('./New Dehli.png',dpi=500)
     """                    
     
-
     gc.collect()
     
     distance_list_test = list()
@@ -236,25 +235,22 @@ def evaluate_network(city, trained_city, do_pca=False, create_model_now=True, re
         #pca = pickle.load(f)
 
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
-    samples = 150000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
 
-    if recalculate_weights is True:
-        landmark_list_test, distance_list_test, _, _ = calculate_shortest_path(graph, samples,0) 
+    samples = 150000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
+    
+    landmark_list_test, distance_list_test, _, _ = calculate_shortest_path(graph, samples,0, recalculate_weights=recalculate_weights) 
 
     if create_model is True:
         if recalculate_weights is True:
+            # possible you will need to implement way so the transition probabilities are calculated
             create_model(city, graph, dimensions=128, weight='transition_probability')
         else:
             create_model(city, graph, dimensions=128) # create and save model if not created yet
-    
-    samples = 150000 // (graph.number_of_nodes()-1) # we want with the double function later end up with approx 700000million of samples
 
-    
     embedding = KeyedVectors.load(f'./semester2/node2vec_models/{city}.wordvectors', mmap='r')
     
     input_test, output_test = transformer(embedding, landmark_list_test, distance_list_test, 
          concatenation, graph,add_distance=True)
-
 
     scaler = preprocessing.StandardScaler() # normalize it here because normalisation in the model does not really work since tensorflow 2.2.0  
     input_test = scaler.fit_transform(input_test)
@@ -271,7 +267,7 @@ def train_network(city, inverse=False, create_model_now=False, recalculate_weigh
     """
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
     
-    samples = 250000 // (graph.number_of_nodes())
+    samples = 200000 // (graph.number_of_nodes())
     print(samples)
     landmark_list_training, distance_list_training, landmark_list_test, distance_list_test, landmark_list_validation, distance_list_validation = calculate_shortest_path(graph, samples, samples//5, samples//5, recalculate_weights=recalculate_weights) # 100 training 10 test cities
     
@@ -487,7 +483,8 @@ def train_network_CNN(city):
 #train_network('Manhattan', inverse=False) #10.130
 #train_network('New Dehli', inverse=False, create_model_now=True, recalculate_weights=True, do_pca=True) #  9.8444824218
 #evaluate_network('Brugge', 'New Dehli', do_pca=True, create_model_now=True,  recalculate_weights=True)
-train_network('Brugge', create_model_now=False, recalculate_weights=False) # 9.399
+# train_network('Brugge', create_model_now=False, recalculate_weights=False, do_pca=False) # 9.399
+evaluate_network('Rio de Janeiro', 'Brugge',create_model_now=False, do_pca=False)
 #train_network('Nairobi', create_model_now=False, recalculate_weights=False)
 #train_network('Rio de Janeiro', create_model_now=True, recalculate_weights=True)
 #train_network('New Dehli', inverse=True) #11.31
