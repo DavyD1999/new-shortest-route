@@ -155,7 +155,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks):
     time_ML = 0
 
     average_vel = get_weigted_average_velocity(graph)
-    clf, scaler = gp.add_amount_of_visited_weights(graph, 20)
+    clf, scaler = gp.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks)
     
     for i in range(len(start_nodes)):
         
@@ -186,7 +186,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks):
     
     xvals_ML, average_stretch_ML, standard_dev_on_mean_stretchML = prepare_plot_errorbar(len_ML, weight_path,  binsize=150)                                    
     
-    plt.errorbar(xvals_ML, average_stretch_ML, yerr=standard_dev_on_mean_stretchML, linewidth=3,elinewidth=3, linestyle='-', capsize=5,barsabove=True, label='logistische regressie')
+    plt.errorbar(xvals_ML, average_stretch_ML, yerr=standard_dev_on_mean_stretchML, linewidth=3,elinewidth=3, linestyle='-', capsize=5,barsabove=True, label='ML')
     plt.legend()
     plt.savefig(f'./semester2/ML_files/rek_ML_{city}.png', bbox_inches="tight")
     plt.clf()
@@ -245,5 +245,7 @@ def prepare_plot_errorbar_logistic(computed_list, weight_path,  binsize):
     return xvals, average_stretch, standard_dev_on_mean_stretch
        
 # make_graphs_NN('Brugge', 50)
+name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
-make_graphs_logistic('Nairobi', 50, 20)
+for name in name_list:
+    make_graphs_logistic(name, 50, 20)
