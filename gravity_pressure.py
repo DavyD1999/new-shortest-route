@@ -8,8 +8,9 @@ import sklearn.model_selection
 import sklearn.linear_model
 from queue import PriorityQueue
 import time
-random.seed(42)
 
+random.seed(42)
+np.random.seed(42)
 def remove_doubles2(route_list):
     
     indices = dict()
@@ -134,44 +135,50 @@ def gravity_pressure(id1, id2, graph, distance_function=cf.euclid_distance, rati
   
   return sec_travelled_removed
 
-def add_amount_of_visited_weights(graph, number_of_landmarks):
+def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False):
 
     landmarks_tot = random.sample(list(graph.nodes()), number_of_landmarks) # without repetition
 
-    landmarks1 = landmarks_tot[:len(landmarks_tot)//2]
-    landmarks2 = landmarks_tot[len(landmarks_tot)//2:]
+    landmarks1 = landmarks_tot[:len(landmarks_tot)//4]
+    landmarks2 = landmarks_tot[len(landmarks_tot)//4:]
     path_list = list()
     
     for u, v in graph.edges():
         graph[u][v]['amount_travelled'] = 1
     for landmark in landmarks1:
         distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
-        for value in paths.values():
+        for i, value in enumerate(paths.values()):
             for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
                 graph[value[x]][value[x+1]]['amount_travelled'] += 0.1
 
         path_list.append(paths)
 
     x_list, y_list = list(), list()
-
-    landmarks = random.choices(list(graph.nodes()), k= 2 * number_of_landmarks//4) # new landmarks else amount of times visited makes no sense
-    print(landmarks)
     
     for landmark in landmarks2: 
         distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
-        for value in paths.values():
-
+        for i, value in enumerate(paths.values()):
+            if  np.random.uniform(0.0, 1.0) < 0.001 and cutoff is True:
+                print(i)
+                break
             for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
                 previous = cf.euclid_distance(value[x], value[-1], graph)
                 
                 euclid_distance = cf.euclid_distance(value[x+1], value[-1], graph)
 
                 amount_travelled = graph[value[x]][value[x+1]]['amount_travelled']
+                travel_time = graph[value[x]][value[x+1]]['travel_time']
 
-                x_list.append(np.array([amount_travelled, euclid_distance, graph[value[x]][value[x+1]]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1 + euclid_distance), 1 / graph[value[x]][value[x+1]]['travel_time']]))
-                # x_list.append([amount_travelled, euclid_distance, graph[value[x]][value[x+1]]['travel_time'], euclid_distance-previous])
+                sqep = (euclid_distance - previous)**2
+                sqeu = euclid_distance ** 2
+                sqam = amount_travelled ** 2                
+                
+                # x_list.append(np.array([amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance),1/travel_time, sqep, sqeu, sqam, 1/(sqep +0.1), 1/(sqeu + 0.1), 1/sqam]))
+
+                x_list.append(np.array([amount_travelled, euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1 + euclid_distance), 1 /travel_time, sqep, 1/sqep]))
+             
                 # eucldian distance between the destination and the neighbor node we are actually going to
-                y_list.append(1 + 5 * distances[value[x+1]]/distances[value[-1]]) # used to be just one
+                y_list.append(1 + 2 * distances[value[x+1]]/distances[value[-1]]) # used to be just one
                 
                 neighbors = list(graph.neighbors(value[x]))
                 neighbors.remove(value[x+1])
@@ -180,16 +187,19 @@ def add_amount_of_visited_weights(graph, number_of_landmarks):
                     chosen_neighbor = neighbors[0]
                     amount_travelled = graph[value[x]][chosen_neighbor]['amount_travelled']
                     euclid_distance = cf.euclid_distance(chosen_neighbor, value[-1], graph)
+                    travel_time = graph[value[x]][chosen_neighbor]['travel_time']
 
-                    x_list.append(np.array([amount_travelled,  euclid_distance, graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / graph[value[x]][chosen_neighbor]['travel_time']]))
+                    sqep = (euclid_distance - previous)**2
+                    sqeu = euclid_distance ** 2
+                    sqam = amount_travelled ** 2
+                
+                    # x_list.append(np.array([amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance),1/travel_time, sqep, sqeu, sqam, 1/(sqep +0.1), 1/(sqeu + 0.1), 1/sqam]))
+
+                    x_list.append(np.array([amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / travel_time, sqep, 1/sqep]))
                     #x_list.append([amount_travelled,  euclid_distance, graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous])
                     y_list.append(0)
 
     x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x_list, y_list, test_size=0.25, random_state=42, shuffle=True)
-
-    scaler = sklearn.preprocessing.StandardScaler(copy=False)
-    #x_train = scaler.fit_transform(x_train)
-    #x_test = scaler.transform(x_test)
     
     linear_regression = sklearn.linear_model.LinearRegression()
 
@@ -199,7 +209,7 @@ def add_amount_of_visited_weights(graph, number_of_landmarks):
     print(clf.score(x_test, y_test))
     print(clf.coef_)
 
-    return clf, scaler
+    return clf
     
 #graph = nx.read_gpickle(f'./graph_pickle/Brugge.gpickle')
 #add_amount_of_visited_weights(graph, 7)
@@ -279,170 +289,8 @@ def weighted_gravity_pressure(id1, id2, graph, weight_function, ratio_travelled=
     return sec_travelled_removed, 1 # reached the end
   
   return sec_travelled_removed
- 
-"""
-inf = np.inf
-  total_nodes = graph.nodes()
-  
-  route = list() # list of nodes which brings us to an end point
-  visits = collections.Counter() # every element not yet in dict has count zero
 
-  assert id1 in total_nodes and id2 in total_nodes , "node_id is not in the graph"
-
-  current_node = id1
-  route.append(current_node)
-
-
-  min_function = inf
-  sec_travelled = 0 # arbitrary initialisation
-    
-  while (current_node != id2):
-
-    current_min_visits = inf
-    for _ , neighbor_node, amount_travelled in graph.edges(current_node, data = 'amount_travelled'):
-        # find the canidates
-        if visits[neighbor_node] < current_min_visits:
-            canidates = dict() 
-            canidates[neighbor_node] = amount_travelled
-            current_min_visits = visits[neighbor_node]
-        
-        elif visits[neighbor_node] == current_min_visits:
-            canidates[neighbor_node] = amount_travelled
-    
-    min_function = inf
-    for neighbor_node, amount_travelled in canidates.items(): # try to minimize the loss so get as close as possible
-        euclid_distance = cf.euclid_distance(id2, neighbor_node, graph)
-        function_result = - output_function(weight_function.coef_, np.array([amount_travelled, euclid_distance, graph[current_node][neighbor_node]['travel_time']])) # minus since this predicts prob of going to this node so higher -> better
-        if function_result < min_function:
-            node_with_min_distance = neighbor_node
-            min_function = function_result
-            min_travel_time = graph[current_node][neighbor_node]['travel_time']
-            
-    visits[current_node] += 1
-
-
-    sec_travelled += min_travel_time
-    current_node = node_with_min_distance
-    route.append(current_node) 
-  
-
-  # now we can substract the stretch we did too much aka the double or triple visited nodes
-  route_removed_extra_steps = remove_doubles2(route)
-
-  assert id1 == route_removed_extra_steps[0] and id2 == route_removed_extra_steps[-1], 'something went wrong in the remove doubles'
-  
-  i = 0
-  sec_travelled_removed = 0
-  while i < len(route_removed_extra_steps) - 1: # recount the travel time with this new route
-      sec_travelled_removed += graph[route_removed_extra_steps[i]][route_removed_extra_steps[i+1]]['travel_time']
-      i += 1
-
-  assert sec_travelled >= sec_travelled_removed - 10 ** 5, 'wow this is strange removing nodes adds length' # extra correction term because pc's can't count properly
-
-  if ratio_travelled:
-    return sec_travelled_removed, 1 # reached the end
-  
-  return sec_travelled_removed
-"""
-
-"""
- 
-  uses a weighted function to decide which step is better
-
-  inf = np.inf
-  total_nodes = graph.nodes()
-  
-  route = list() # list of nodes which brings us to an end point
-  visits = collections.Counter() # every element not yet in dict has count zero
-
-  assert id1 in total_nodes and id2 in total_nodes , "node_id is not in the graph"
-
-  current_node = id1
-  route.append(current_node)
-
-  sec_travelled = 0
-
-  gravity_mode = True
-  min_function = inf
-
-  while (current_node != id2):
-
-     if gravity_mode is True:
-
-        for _ , neighbor_node, amount_travelled in graph.edges(current_node, data = 'amount_travelled'):
-      
-            euclid_distance = cf.euclid_distance(id2, neighbor_node, graph)
-            function_result = - weight_function.predict(np.array([amount_travelled, euclid_distance, graph[current_node][neighbor_node]['travel_time']]).reshape(1, -1))
-            print(function_result)
-            if function_result < min_function:
-                node_with_min_distance = neighbor_node
-                min_function = function_result
-                min_travel_time = graph[current_node][neighbor_node]['travel_time']
-
-        if current_node == node_with_min_distance:  
-      # enter the pressure mode
-            gravity_mode = False
-            visits[current_node] += 1 
-            d_v = min_function # distance that needs to get beaten in the pressure mode
-            continue
-     
-     else: # pressure mode
-
-        canidates = dict()
-        current_min_visits = np.inf
-        
-        for _ , neighbor_node, amount_travelled in graph.edges(current_node, data = 'amount_travelled'):
-            # find the canidates
-            if visits[neighbor_node] < current_min_visits:
-                canidates = dict() 
-                canidates[neighbor_node] = amount_travelled
-                current_min_visits = visits[neighbor_node]
-            
-            elif visits[neighbor_node] == current_min_visits:
-                canidates[neighbor_node] = amount_travelled
-        
-        min_function = inf
-        for neighbor_node, amount_travelled in canidates.items(): # try to minimize the loss so get as close as possible
-            euclid_distance = cf.euclid_distance(id2, neighbor_node, graph)
-            function_result = - weight_function.predict(np.array([amount_travelled, euclid_distance, graph[current_node][neighbor_node]['travel_time']]).reshape(1, -1)) # minus since this predicts prob of going to this node so higher -> better
-            
-            if function_result < min_function:
-                node_with_min_distance = neighbor_node
-                min_function = function_result
-                min_travel_time = graph[current_node][neighbor_node]['travel_time']
-                
-        visits[current_node] += 1
-
-        if min_function < d_v: # if progress compared to the gravity mode was booked then switch back
-            gravity_mode = True
-            continue
-
-     sec_travelled += min_travel_time
-     current_node = node_with_min_distance
-     route.append(current_node) 
-  
-
-  # now we can substract the stretch we did too much aka the double or triple visited nodes
-  route_removed_extra_steps = remove_doubles2(route)
-
-  assert id1 == route_removed_extra_steps[0] and id2 == route_removed_extra_steps[-1], 'something went wrong in the remove doubles'
-  
-  i = 0
-  sec_travelled_removed = 0
-  while i < len(route_removed_extra_steps) - 1: # recount the travel time with this new route
-      sec_travelled_removed += graph[route_removed_extra_steps[i]][route_removed_extra_steps[i+1]]['travel_time']
-      i += 1
-
-  assert sec_travelled >= sec_travelled_removed - 10 ** 5, 'wow this is strange removing nodes adds length' # extra correction term because pc's can't count properly
-
-  if ratio_travelled:
-    return sec_travelled_removed, 1 # reached the end
-  
-  return sec_travelled_removed
-
-"""
-
-def priority_queue_new_evaluation_function(id1, id2, graph, weight_function, scaler,ratio_travelled=False, return_counter=False): # id1 is start node id2 is go to node
+def priority_queue_new_evaluation_function(id1, id2, graph, weight_function,ratio_travelled=False, return_counter=False): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -501,7 +349,13 @@ def priority_queue_new_evaluation_function(id1, id2, graph, weight_function, sca
                 # amount_travelled,  euclid_distance, graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / graph[value[x]][chosen_neighbor]['travel_time']
 
                 # start_time = time.time()
-                for_function = np.array([[amount_travelled,  euclid_distance, graph[current_node][neighbor_node]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / graph[current_node][neighbor_node]['travel_time']]])
+
+                sqep = (euclid_distance - previous)**2
+                # sqeu = euclid_distance ** 2
+                # sqam = amount_travelled ** 2
+
+                travel_time = graph[current_node][neighbor_node]['travel_time']
+                for_function = np.array([[amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1/travel_time, sqep, 1/sqep]])
                 #print(f'array making time {time.time()-start_time}')
                 # for_function = np.array([[amount_travelled,  euclid_distance, graph[current_node][neighbor_node]['travel_time'], euclid_distance-previous]])
                 #start_time = time.time()

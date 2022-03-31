@@ -136,7 +136,7 @@ def make_graphs_NN(city, number_of_paths):
     print(time_normal/number_of_paths)
     print(time_NN/number_of_paths)    
 
-def make_graphs_logistic(city, number_of_paths, number_of_landmarks):
+def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=False):
 
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
     
@@ -155,7 +155,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks):
     time_ML = 0
 
     average_vel = get_weigted_average_velocity(graph)
-    clf, scaler = gp.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks)
+    clf = gp.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff)
     
     for i in range(len(start_nodes)):
         
@@ -167,7 +167,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks):
         teller_astar_list.append(a[1])
 
         start_time = time.time()
-        b = gp.priority_queue_new_evaluation_function(start_nodes[i], end_nodes[i], graph, clf, scaler=scaler,ratio_travelled=True ,return_counter=True)
+        b = gp.priority_queue_new_evaluation_function(start_nodes[i], end_nodes[i], graph, clf, ratio_travelled=True ,return_counter=True)
 
         time_ML += time.time() - start_time
         
@@ -192,7 +192,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks):
     plt.clf()
     
     
-    bins=np.histogram(np.hstack((teller_astar_list,teller_ML)), bins=5)[1] #get the bin edges
+    bins=np.histogram(np.hstack((teller_astar_list,teller_ML)), bins=15)[1] #get the bin edges
     
     plt.hist(teller_astar_list, bins=bins)
     print(sum(teller_astar_list))
@@ -245,7 +245,8 @@ def prepare_plot_errorbar_logistic(computed_list, weight_path,  binsize):
     return xvals, average_stretch, standard_dev_on_mean_stretch
        
 # make_graphs_NN('Brugge', 50)
-name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
+# name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
+name_list = ['big_graph']
 for name in name_list:
-    make_graphs_logistic(name, 50, 20)
+    make_graphs_logistic(name, 150, 20, cutoff=True)
