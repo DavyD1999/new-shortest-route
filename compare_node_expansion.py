@@ -10,7 +10,7 @@ import pickle
 import networkx as nx
 from gensim.models import KeyedVectors
 import time
-import gravity_pressure as gp
+import linear
 
 mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
@@ -155,7 +155,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     time_ML = 0
 
     average_vel = get_weigted_average_velocity(graph)
-    clf = gp.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff)
+    clf = linear.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff)
     
     for i in range(len(start_nodes)):
         
@@ -167,7 +167,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
         teller_astar_list.append(a[1])
 
         start_time = time.time()
-        b = gp.priority_queue_new_evaluation_function(start_nodes[i], end_nodes[i], graph, clf, ratio_travelled=True ,return_counter=True)
+        b = linear.priority_queue_new_evaluation_function(start_nodes[i], end_nodes[i], graph, clf, ratio_travelled=True ,return_counter=True)
 
         time_ML += time.time() - start_time
         
@@ -209,6 +209,16 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     plt.savefig(f'./semester2/ML_files/aantal_expansies_ML_{city}.png', bbox_inches="tight")
     plt.clf()
 
+    y_pos = np.arange(2) # 2 timings
+
+    plt.barh(y_pos,[time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
+    plt.yticks(y_pos, labels=['A* met gewogen gemiddelde', 'Lineaire regressie'])
+    plt.yticks(rotation = 25)
+    plt.xlabel('Uitvoeringstijd (s)')
+    plt.xscale('log')
+    plt.savefig(f'./semester2/ML_files/timing_{city}.png', bbox_inches="tight")
+    plt.clf()
+    
     print(time_normal/number_of_paths)
     print(time_ML/number_of_paths)
 
@@ -247,6 +257,6 @@ def prepare_plot_errorbar_logistic(computed_list, weight_path,  binsize):
 # make_graphs_NN('Brugge', 50)
 # name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
-name_list = ['big_graph']
+name_list = ['New Dehli']
 for name in name_list:
-    make_graphs_logistic(name, 150, 20, cutoff=True)
+    make_graphs_logistic(name, 150, 10, cutoff=False)

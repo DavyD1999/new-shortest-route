@@ -8,6 +8,7 @@ import sklearn.model_selection
 import sklearn.linear_model
 from queue import PriorityQueue
 import time
+import linear
 
 random.seed(42)
 np.random.seed(42)
@@ -135,95 +136,13 @@ def gravity_pressure(id1, id2, graph, distance_function=cf.euclid_distance, rati
   
   return sec_travelled_removed
 
-def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False):
 
-    landmarks_tot = random.sample(list(graph.nodes()), number_of_landmarks) # without repetition
-
-    landmarks1 = landmarks_tot[:len(landmarks_tot)//4]
-    landmarks2 = landmarks_tot[len(landmarks_tot)//4:]
-    path_list = list()
-    
-    for u, v in graph.edges():
-        graph[u][v]['amount_travelled'] = 1
-    for landmark in landmarks1:
-        distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
-        for i, value in enumerate(paths.values()):
-            for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
-                graph[value[x]][value[x+1]]['amount_travelled'] += 0.1
-
-        path_list.append(paths)
-
-    x_list, y_list = list(), list()
-    
-    for landmark in landmarks2: 
-        distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
-        for i, value in enumerate(paths.values()):
-            if  np.random.uniform(0.0, 1.0) < 0.001 and cutoff is True:
-                print(i)
-                break
-            for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
-                previous = cf.euclid_distance(value[x], value[-1], graph)
-                
-                euclid_distance = cf.euclid_distance(value[x+1], value[-1], graph)
-
-                amount_travelled = graph[value[x]][value[x+1]]['amount_travelled']
-                travel_time = graph[value[x]][value[x+1]]['travel_time']
-
-                sqep = (euclid_distance - previous)**2
-                sqeu = euclid_distance ** 2
-                sqam = amount_travelled ** 2                
-                
-                # x_list.append(np.array([amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance),1/travel_time, sqep, sqeu, sqam, 1/(sqep +0.1), 1/(sqeu + 0.1), 1/sqam]))
-
-                x_list.append(np.array([amount_travelled, euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1 + euclid_distance), 1 /travel_time, sqep, 1/sqep]))
-             
-                # eucldian distance between the destination and the neighbor node we are actually going to
-                y_list.append(1 + 2 * distances[value[x+1]]/distances[value[-1]]) # used to be just one
-                
-                neighbors = list(graph.neighbors(value[x]))
-                neighbors.remove(value[x+1])
-
-                if neighbors != []: # if other neighbors are available
-                    chosen_neighbor = neighbors[0]
-                    amount_travelled = graph[value[x]][chosen_neighbor]['amount_travelled']
-                    euclid_distance = cf.euclid_distance(chosen_neighbor, value[-1], graph)
-                    travel_time = graph[value[x]][chosen_neighbor]['travel_time']
-
-                    sqep = (euclid_distance - previous)**2
-                    sqeu = euclid_distance ** 2
-                    sqam = amount_travelled ** 2
-                
-                    # x_list.append(np.array([amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance),1/travel_time, sqep, sqeu, sqam, 1/(sqep +0.1), 1/(sqeu + 0.1), 1/sqam]))
-
-                    x_list.append(np.array([amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / travel_time, sqep, 1/sqep]))
-                    #x_list.append([amount_travelled,  euclid_distance, graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous])
-                    y_list.append(0)
-
-    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x_list, y_list, test_size=0.25, random_state=42, shuffle=True)
-    
-    linear_regression = sklearn.linear_model.LinearRegression()
-
-    clf = linear_regression.fit(x_train, y_train)
-
-    print(clf.score(x_train, y_train))
-    print(clf.score(x_test, y_test))
-    print(clf.coef_)
-
-    return clf
     
 #graph = nx.read_gpickle(f'./graph_pickle/Brugge.gpickle')
 #add_amount_of_visited_weights(graph, 7)
 
-def output_function(weights, vals):
 
-    return np.sum(weights * vals)
                 
-    
-def weighted_function(weight_difference_distance, distance, amount_travelled):
-    if distance < 10 ** -5: # reached destination
-        return - np.inf 
-
-    return weight_difference_distance * np.log(distance) - amount_travelled # minus since we want to decrease our distance
 
 def weighted_gravity_pressure(id1, id2, graph, weight_function, ratio_travelled=False, plot_stuck=False):
   inf = np.inf
@@ -290,82 +209,3 @@ def weighted_gravity_pressure(id1, id2, graph, weight_function, ratio_travelled=
   
   return sec_travelled_removed
 
-def priority_queue_new_evaluation_function(id1, id2, graph, weight_function,ratio_travelled=False, return_counter=False): # id1 is start node id2 is go to node
-    inf = np.inf
-    # heuristic function 
-    total_nodes = graph.nodes()
-
-    assert id1 in total_nodes and id2 in total_nodes , "node_id is not in the graph"
-
-    came_from = dict()
-
-    visited = set()
-    priority_queue = PriorityQueue()
-
-    f_score = dict()
-    g_score = dict()
-
-    for node in total_nodes:
-        f_score[node] = inf
-        g_score[node] = inf
-    
-    g_score[id1] = 0
-    f_score[id1] = 0
-    priority_queue.put((f_score[id1], id1))
-
-    teller = 1
-    
-    while priority_queue.empty() is False:
-        _ , current_node = priority_queue.get() # first attribute is the weight
-    
-        if current_node in visited: # don't want to visit same node twice
-            continue
-        
-        if current_node == id2:
-            
-            if ratio_travelled is False:
-                
-                return g_score[id2]
-                
-            if return_counter is True:
-                return g_score[id2], 1,teller
-            return g_score[id2], 1 
-        
-        teller += 1
-        previous = cf.euclid_distance(current_node, id2, graph)
-        for _ ,neighbor_node, edge_weight in graph.edges(current_node, data = 'travel_time'): #first one is the current node the last argument makes sure we get the length
-           
-            tentative_g_score = g_score[current_node] + edge_weight
-            
-
-            if tentative_g_score < g_score[neighbor_node]:
-                came_from[neighbor_node] = current_node
-                g_score[neighbor_node] = tentative_g_score 
-                
-                amount_travelled = graph[current_node][neighbor_node]['amount_travelled']
-                # start_time = time.time()
-                euclid_distance = cf.euclid_distance(neighbor_node, id2, graph)
-                # print(f'eulid distance time {time.time()-start_time}')
-                # amount_travelled,  euclid_distance, graph[value[x]][chosen_neighbor]['travel_time'], euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1 / graph[value[x]][chosen_neighbor]['travel_time']
-
-                # start_time = time.time()
-
-                sqep = (euclid_distance - previous)**2
-                # sqeu = euclid_distance ** 2
-                # sqam = amount_travelled ** 2
-
-                travel_time = graph[current_node][neighbor_node]['travel_time']
-                for_function = np.array([[amount_travelled,  euclid_distance, travel_time, euclid_distance-previous, 1/amount_travelled, 1/(0.1+euclid_distance), 1/travel_time, sqep, 1/sqep]])
-                #print(f'array making time {time.time()-start_time}')
-                # for_function = np.array([[amount_travelled,  euclid_distance, graph[current_node][neighbor_node]['travel_time'], euclid_distance-previous]])
-                #start_time = time.time()
-                #for_function = scaler.transform(for_function)
-                #print(f'scaler doing time {time.time()-start_time}')
-                #start_time = time.time()
-                f_score[neighbor_node] = - output_function(weight_function.coef_, for_function) # expand lowest first
-                #print(f'output function doing time {time.time()-start_time}')
-                priority_queue.put((f_score[neighbor_node], neighbor_node))
-
-        visited.add(current_node)
-
-    return inf
