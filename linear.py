@@ -17,14 +17,14 @@ def list_maker(euclid_distance, previous_euclid, amount_travelled, travel_time):
 
     # new2 =  (euclid_distance ** 4 + 1) / (euclid_distance ** 2 + euclid_distance ** 4 + 10)
     
-    return np.array([amount_travelled, euclid_distance, travel_time, difference,  1/amount_travelled, 1/difference,1/(euclid_distance+0.1), 1/travel_time])
+    return np.array([amount_travelled, euclid_distance, travel_time, difference,  1/amount_travelled, 1/difference,1/(euclid_distance+0.1)])
 
 def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False):
 
     landmarks_tot = random.sample(list(graph.nodes()), number_of_landmarks) # without repetition
 
-    landmarks1 = landmarks_tot[:len(landmarks_tot)//4]
-    landmarks2 = landmarks_tot[len(landmarks_tot)//4:]
+    landmarks1 = landmarks_tot[:len(landmarks_tot)//2]
+    landmarks2 = landmarks_tot[len(landmarks_tot)//2:]
     path_list = list()
     
     for u, v in graph.edges():

@@ -257,6 +257,6 @@ def prepare_plot_errorbar_logistic(computed_list, weight_path,  binsize):
 # make_graphs_NN('Brugge', 50)
 # name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
-name_list = ['New Dehli']
+name_list = ['Brugge']
 for name in name_list:
-    make_graphs_logistic(name, 150, 10, cutoff=False)
+    make_graphs_logistic(name, 150, 15, cutoff=False)
