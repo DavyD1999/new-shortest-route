@@ -11,6 +11,7 @@ import networkx as nx
 from gensim.models import KeyedVectors
 import time
 import linear
+import fix_graph_data
 
 mpl.style.use('tableau-colorblind10')
 np.random.seed(42)
@@ -80,9 +81,12 @@ def make_graphs_NN(city, number_of_paths):
 
     time_normal = 0
     time_NN = 0
+
+    average_vel = get_weigted_average_velocity(graph)
+    
     
     for i in range(len(start_nodes)):
-        average_vel = get_weigted_average_velocity(graph)
+        
 
         start_time = time.time()
         a = a_star.A_star_priority_queue(start_nodes[i], end_nodes[i], graph, average_vel, return_counter = True)
@@ -151,13 +155,20 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     len_ML, teller_ML = list(), list()
     weight_path = list()
 
+    time_max_vel = 0
     time_normal = 0
     time_ML = 0
 
-    average_vel = get_weigted_average_velocity(graph)
+    average_vel = get_weigted_average_velocity(graph) -15
+    max_velocity = fix_graph_data.get_max_velocity(graph) # gets the max velocity of all edges, useful for A*
+
     clf = linear.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff)
     
     for i in range(len(start_nodes)):
+
+        start_time = time.time()
+        a_star.A_star_priority_queue(start_nodes[i], end_nodes[i], graph, max_velocity)
+        time_max_vel +=  time.time() - start_time
         
         start_time = time.time()
         a = a_star.A_star_priority_queue(start_nodes[i], end_nodes[i], graph, average_vel, return_counter = True)
@@ -167,7 +178,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
         teller_astar_list.append(a[1])
 
         start_time = time.time()
-        b = linear.priority_queue_new_evaluation_function(start_nodes[i], end_nodes[i], graph, clf, ratio_travelled=True ,return_counter=True)
+        b = linear.priority_queue_new_evaluation_function(start_nodes[i], end_nodes[i], graph, clf ,ratio_travelled=True ,return_counter=True)
 
         time_ML += time.time() - start_time
         
@@ -209,10 +220,10 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     plt.savefig(f'./semester2/ML_files/aantal_expansies_ML_{city}.png', bbox_inches="tight")
     plt.clf()
 
-    y_pos = np.arange(2) # 2 timings
+    y_pos = np.arange(3) # 2 timings
 
-    plt.barh(y_pos,[time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
-    plt.yticks(y_pos, labels=['A* met gewogen gemiddelde', 'Lineaire regressie'])
+    plt.barh(y_pos,[time_max_vel/number_of_paths, time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
+    plt.yticks(y_pos, labels=['Consistente A*','A* met gewogen gemiddelde', 'Lineaire regressie'])
     plt.yticks(rotation = 25)
     plt.xlabel('Uitvoeringstijd (s)')
     plt.xscale('log')
@@ -257,6 +268,6 @@ def prepare_plot_errorbar_logistic(computed_list, weight_path,  binsize):
 # make_graphs_NN('Brugge', 50)
 # name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
-name_list = ['Brugge']
+name_list = ['big_graph']
 for name in name_list:
-    make_graphs_logistic(name, 150, 15, cutoff=False)
+    make_graphs_logistic(name, 150, 15, cutoff=True)

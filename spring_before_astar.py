@@ -13,9 +13,10 @@ for node in graph.nodes():
 
 new_layout = nx.spring_layout(graph, pos=coordinate_dictionary, weight='travel_time', seed=42)
 
+print(new_layout)
+nx.draw_networkx_nodes(graph, new_layout, node_size=1) # new layout specifies positions
 
-nx.draw_networkx_nodes(graph, new_layout, node_size=10) # new layout specifies positions
 labels = nx.get_edge_attributes(graph,'travel_time')
-nx.draw_networkx_edges(graph, pos=new_layout, edgelist=None, width=0.5, node_size=10)
+nx.draw_networkx_edges(graph, pos=new_layout, edgelist=None, width=0.5, node_size=1)
 nx.draw_networkx_edge_labels(graph, pos=new_layout, edge_labels=labels, label_pos=0.5, font_size=3)
 plt.savefig('./semester2/springlayout/Brugge_gespringed.png', dpi=500)
