@@ -159,7 +159,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     time_normal = 0
     time_ML = 0
 
-    average_vel = get_weigted_average_velocity(graph) -15
+    average_vel = get_weigted_average_velocity(graph) -20
     max_velocity = fix_graph_data.get_max_velocity(graph) # gets the max velocity of all edges, useful for A*
 
     clf = linear.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff)
@@ -220,10 +220,14 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     plt.savefig(f'./semester2/ML_files/aantal_expansies_ML_{city}.png', bbox_inches="tight")
     plt.clf()
 
-    y_pos = np.arange(3) # 2 timings
+    #y_pos = np.arange(3) # 2 timings
 
-    plt.barh(y_pos,[time_max_vel/number_of_paths, time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
-    plt.yticks(y_pos, labels=['Consistente A*','A* met gewogen gemiddelde', 'Lineaire regressie'])
+    #plt.barh(y_pos,[time_max_vel/number_of_paths, time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
+    #plt.yticks(y_pos, labels=['Consistente A*','A* met gewogen gemiddelde', 'Lineaire regressie'])
+    y_pos = np.arange(2)
+    plt.barh(y_pos,[time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
+    plt.yticks(y_pos, labels=['A* met gewogen gemiddelde', 'Lineaire regressie'])
+    
     plt.yticks(rotation = 25)
     plt.xlabel('Uitvoeringstijd (s)')
     plt.xscale('log')
@@ -264,10 +268,102 @@ def prepare_plot_errorbar_logistic(computed_list, weight_path,  binsize):
 
     average_stretch[average_stretch == 0] = np.nan
     return xvals, average_stretch, standard_dev_on_mean_stretch
+
+def node_expansions_vs_stretch(city, number_of_paths, number_of_landmarks, cutoff=True):
+    graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
+    
+    node_list = list(graph.nodes())
+    
+    how_many = 2 * number_of_paths
+    random_generated = random.sample(node_list, k=how_many)
+    start_nodes = random_generated[:number_of_paths]
+    end_nodes = random_generated[number_of_paths:]
+
+    weight_path = list()
+
+    for i in range(len(start_nodes)):
+        weight_path.append(nx.shortest_path_length(graph, start_nodes[i], end_nodes[i], weight='travel_time', method='dijkstra'))    
+
+    weight_path = np.array(weight_path)
+    
+    x_list = list()
+    y_list = list()
+    max_velocity = int(fix_graph_data.get_max_velocity(graph))# gets the max velocity of all edges, useful for A*
+
+    for vel in range(max_velocity,0,-5):
+
+        print(vel)
+        length = list()
+        teller = list()
+        for i in range(len(start_nodes)):
+
+            a = a_star.A_star_priority_queue(start_nodes[i], end_nodes[i], graph, vel, return_counter = True)
+            
+            length.append(a[0])
+            teller.append(a[1])
+
+            
+        length = np.array(length) / weight_path
+        length = np.mean(length)
+        teller = np.mean(np.array(teller))
+
+        x_list.append(length)
+        y_list.append(teller)
+
+    x_list_linear = list()
+    y_list_linear = list()
+    for extra_factor in range(0, 12,2):
+        clf = linear.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff, extra_factor=extra_factor)
+    
+        length = list()
+        teller = list()
+        for i in range(len(start_nodes)):
+            b = linear.priority_queue_new_evaluation_function(start_nodes[i], end_nodes[i], graph, clf, ratio_travelled=True ,return_counter=True)
+
+            length.append(b[0])
+            teller.append(b[2])
+
+            
+
+        length = np.array(length) / weight_path
+        length = np.mean(length)
+        teller = np.mean(np.array(teller))
+
+        x_list_linear.append(length)
+        y_list_linear.append(teller)
+        
+
+    print(x_list)
+    print(y_list)
+
+    
+    plt.scatter(x_list, y_list, label='Normale A*')
+    plt.scatter(x_list_linear, y_list_linear, marker='+', label='ML')
+    plt.xlim(left=0.95)
+    plt.xlabel('Rek')
+    plt.ylabel('Gemiddeld aantal node expansies')
+    plt.yscale('log')
+    plt.legend()
+    plt.savefig(f'./semester2/ML_files/compare_stretch_{city}', bbox_inches='tight')
+    
+    plt.clf()
+    return 1
+    
        
 # make_graphs_NN('Brugge', 50)
 # name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
-name_list = ['big_graph']
+node_expansions_vs_stretch('Brugge', 150, 10)    
+
+"""
+name_list = ['Brugge']
 for name in name_list:
+    
     make_graphs_logistic(name, 150, 15, cutoff=True)
+
+
+"""
+
+
+
+    

@@ -87,20 +87,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
             reached_end_node[i] = 1
             result_stretch[i] = result / weight_path[i]
 
-    elif function == gp.priority_queue_new_evaluation_function:
-        clf, scaler = gp.add_amount_of_visited_weights(graph, 20)
-        print('gestart')
-        tot_teller = 0
-        for i in range(number_of_routes):  # do the greedy functions
-            start_time = time.time() 
-            result, ratio_travelled, teller = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph, weight_function=clf, scaler=scaler, ratio_travelled=True, return_counter=True)  # result like route weight of the desired path
-            ratio_travelled_list[i] = ratio_travelled
-            tot_teller += teller
-            if result != np.inf:  # only calculate how long the path was once one was found with greedy forwarding  else takes so long
-                total_time += time.time() - start_time  # only track time if succesful
-                reached_end_node[i] = 1
-                result_stretch[i] = result / weight_path[i]
-        print(tot_teller)            
+                
     elif function == gtas.greedy_forwarding_then_a_star: #or function == a_star.A_star_priority_queue:
 
       average_velocity = fgd.get_weigted_average_velocity(graph)
@@ -134,26 +121,26 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
                 reached_end_node[i] = 1
                 result_stretch[i] = result/weight_path[i]
         print(tot_teller)        
-        """
+        
           
         
-        elif foldername[x] == 'greedy_spring':
-          
-          graph_spring = nf.spring(graph) 
-          print('gespringed')
-    
-          for i in range(number_of_routes): # do the greedy functions
-            start_time = time.time()
-    
-            result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_spring, distance_function=cf.supremum ,ratio_travelled=True) # result like route weight of the desired path
-            
-            ratio_travelled_list[i] = ratio_travelled
-    
-            if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
-              total_time += time.time() - start_time # only track time if succesful
-              reached_end_node[i] = 1
-              result_stretch[i] = result/weight_path[i]
-        """
+    elif foldername[x] == 'semester1/greedy_spring':
+      
+      graph_spring = nf.spring(graph) 
+      print('gespringed')
+
+      for i in range(number_of_routes): # do the greedy functions
+        start_time = time.time()
+
+        result, ratio_travelled = function(node_list[list_indices_start[i]], node_list[list_indices_end[i]], graph_spring, distance_function=cf.euclidian_n_dimensions ,ratio_travelled=True) # result like route weight of the desired path
+        
+        ratio_travelled_list[i] = ratio_travelled
+
+        if result != np.inf: # only calculate how long the path was once one was found with greedy forwarding  else takes so long   
+          total_time += time.time() - start_time # only track time if succesful
+          reached_end_node[i] = 1
+          result_stretch[i] = result/weight_path[i]
+        
     elif function == NNgp.gravity_pressure_embedding:
         embedding = KeyedVectors.load(f'./node2vec_models/{name}.wordvectors', mmap='r')
         
@@ -283,12 +270,15 @@ name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
 # name_list = ['Manhattan']
 
-functions = [gp.priority_queue_new_evaluation_function,a_star.A_star_priority_queue ,gp.gravity_pressure, gf.greedy_forwarding, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, NNgp.gravity_pressure_embedding, 
+# functions = [gp.priority_queue_new_evaluation_function,a_star.A_star_priority_queue ,gp.gravity_pressure, gf.greedy_forwarding, gtas.greedy_forwarding_then_a_star, grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding, hr.hyperbolic_greedy_forwarding] #,hr.hyperbolic_greedy_forwarding gf.greedy_forwarding ,gfwe.greedy_forwarding_with_edge_weight, gtas.greedy_forwarding_then_a_star,  grpf.greedy_forwarding_rpf, gm.manhattan_greedy_forwarding,gp.gravity_pressure, gp.gravity_pressure]# a_star.A_star_priority_queue, NNgp.gravity_pressure_embedding, 
 
 #functions = [hr.hyperbolic_greedy_forwarding]
 #functions = [a_star.A_star_priority_queue]
 
-foldernames = ['semester2/weighted_expansion', 'irrelevanat/', 'semester1/gravity_pressure', 'semester1/normal_greedy', 'semester1/greedy_then_a_star', 'semester1/greedy_rpf','semester1/greedy_manhattan','semester1/greedy_hyperbolic',] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
+functions = [gf.greedy_forwarding]
+
+foldernames = ['semester1/greedy_spring']
+# foldernames = ['semester2/weighted_expansion', 'irrelevanat/', 'semester1/gravity_pressure', 'semester1/normal_greedy', 'semester1/greedy_then_a_star', 'semester1/greedy_rpf','semester1/greedy_manhattan','semester1/greedy_hyperbolic',] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
 #'pure_A_star'
 #foldernames = ['pure_A_star']
 #foldernames = ['greedy_hyperbolic']

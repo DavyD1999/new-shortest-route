@@ -11,33 +11,37 @@ import sklearn.preprocessing
 import time
 
 
-def list_maker(euclid_distance, previous_euclid, amount_travelled, travel_time):
+def list_maker(euclid_distance, previous_euclid, amount_travelled, travel_time, amount_of_neighbors):
     difference = euclid_distance - previous_euclid
-    #sqep = difference * difference
-    # extra = np.sqrt(np.sum((coor1-coor2) ** 2))
-    
 
-    return np.array([[amount_travelled, euclid_distance, travel_time, difference,  1/amount_travelled, 1/difference,1/(euclid_distance+0.1), np.tanh(amount_travelled) ]])
+    return np.array([[amount_travelled, euclid_distance, travel_time, difference,  1/amount_travelled, 1/difference,1/(euclid_distance+0.1), np.tanh(amount_travelled), amount_of_neighbors, amount_of_neighbors**2,  1/amount_of_neighbors]])
 
-def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False):
+def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False, extra_factor=5):
 
+    np.random.seed(42)
+    random.seed(42)
 
     landmarks_tot = random.sample(list(graph.nodes()), number_of_landmarks) # without repetition
+    
 
     landmarks1 = landmarks_tot[:len(landmarks_tot)//2]
     landmarks2 = landmarks_tot[len(landmarks_tot)//2:]
-    path_list = list()
     
+    print('hier')
+    for u in graph.nodes():
+        graph.nodes[u]['amount_neighbors'] = len(list(nx.neighbors(graph,u))) 
+        
     for u, v in graph.edges():
         graph[u][v]['amount_travelled'] = 1
+        
     for landmark in landmarks1:
+        print(landmark)
         distances, paths = nx.single_source_dijkstra(graph, landmark, weight='travel_time')
         for i, value in enumerate(paths.values()):
             for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
                 graph[value[x]][value[x+1]]['amount_travelled'] += 0.1
 
-        path_list.append(paths)
-
+    print('hier')
     x_list, y_list = list(), list()
     
     for landmark in landmarks2: 
@@ -49,17 +53,18 @@ def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False):
                 print(i)
                 break
             
-            
             for x in range(len(value)-1): # -1 cause we can't count too for out of the list range
                 previous = cf.euclid_distance(value[x], value[-1], graph)    
                 euclid_distance = cf.euclid_distance(value[x+1], value[-1], graph)
                 amount_travelled = graph[value[x]][value[x+1]]['amount_travelled']
                 travel_time = graph[value[x]][value[x+1]]['travel_time']
 
-                x_list.append(list_maker(euclid_distance, previous, amount_travelled, travel_time)[0])
+                amount_neighbors = graph.nodes[value[x+1]]['amount_neighbors']
+
+                x_list.append(list_maker(euclid_distance, previous,  amount_travelled, travel_time, amount_neighbors)[0])
              
                 # eucldian distance between the destination and the neighbor node we are actually going to
-                y_list.append(1 + 3 * distances[value[x+1]]/distances[value[-1]] ) # used to be just one +  distances[value[x+1]]/distances[value[-1]]
+                y_list.append(1 + extra_factor * distances[value[x+1]]/distances[value[-1]] ) # used to be just one +  distances[value[x+1]]/distances[value[-1]]
                 
                 neighbors = list(graph.neighbors(value[x]))
                 neighbors.remove(value[x+1])
@@ -70,14 +75,16 @@ def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False):
                     euclid_distance = cf.euclid_distance(chosen_neighbor, value[-1], graph)
                     travel_time = graph[value[x]][chosen_neighbor]['travel_time']
 
-                    x_list.append(list_maker(euclid_distance, previous, amount_travelled, travel_time)[0])
+                    amount_neighbors = graph.nodes[chosen_neighbor]['amount_neighbors']
+
+                    x_list.append(list_maker(euclid_distance, previous, amount_travelled, travel_time, amount_neighbors)[0])
                     
                     y_list.append(0)
 
     x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x_list, y_list, test_size=0.25, random_state=42, shuffle=True)
     
     # linear_regression = sklearn.svm.SVR(kernel='poly',max_iter = 5000, verbose=False)
-    linear_regression =  sklearn.linear_model.Ridge() #sklearn.linear_model.LinearRegression()
+    linear_regression =  sklearn.linear_model.Ridge() 
     
     x_train = np.array(x_train)
     y_train = np.array(y_train)
@@ -85,7 +92,7 @@ def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False):
     print(x_train.shape)
 
     clf = linear_regression.fit(x_train, y_train)
-    print(clf.coef_)
+    #print(clf.coef_)
     print(clf.score(x_train, y_train))
     print(clf.score(x_test, y_test))
 
@@ -156,8 +163,7 @@ def priority_queue_new_evaluation_function(id1, id2, graph, weight_function, rat
 
                 travel_time = graph[current_node][neighbor_node]['travel_time']
 
-
-                for_function = list_maker(euclid_distance, previous, amount_travelled, travel_time)
+                for_function = list_maker(euclid_distance, previous,amount_travelled, travel_time, graph.nodes[neighbor_node]['amount_neighbors'])
 
                 f_score[neighbor_node] = - output_function(weight_function.coef_, for_function) # output_function(weight_function.coef_, for_function) #output_function(weight_function.coef_, for_function)# expand lowest first
                 

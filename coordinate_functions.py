@@ -99,6 +99,7 @@ def distance_manhattan(node_id1, node_id2, graph):
 
 def get_coordinate_array(node_id, graph):
     data = graph.nodes[node_id]
+
     return data['coordinates']
 
 def euclidian_n_dimensions(node_id1, node_id2, graph):

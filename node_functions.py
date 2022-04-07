@@ -91,7 +91,7 @@ def make_scale_free_graph(number_of_nodes, exponent):
         
     return graph
 
-def spring(graph, dimensions=2, weight_bool=True, iterations=25):
+def spring(graph, dimensions=2, weight_bool=False, iterations=25):
     
     init_pos_dict = dict()
     
