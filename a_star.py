@@ -62,7 +62,7 @@ def A_star(id1, id2, graph, velocity): # id1 is start node id2 is go to node
 
 
 
-def A_star_priority_queue(id1, id2, graph, velocity, return_counter=False): # id1 is start node id2 is go to node
+def A_star_priority_queue(id1, id2, graph, velocity, return_counter=False, return_visited=False): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -100,6 +100,9 @@ def A_star_priority_queue(id1, id2, graph, velocity, return_counter=False): # id
             
             if return_counter is True:
                 return g_score[id2], teller
+
+            if return_visited is True:
+                return visited, came_from
             return g_score[id2]
         
         teller += 1

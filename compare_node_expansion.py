@@ -312,7 +312,7 @@ def node_expansions_vs_stretch(city, number_of_paths, number_of_landmarks, cutof
 
     x_list_linear = list()
     y_list_linear = list()
-    for extra_factor in range(0, 12,2):
+    for extra_factor in range(2, 12,2):
         clf = linear.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff, extra_factor=extra_factor)
     
         length = list()
@@ -351,18 +351,19 @@ def node_expansions_vs_stretch(city, number_of_paths, number_of_landmarks, cutof
     
        
 # make_graphs_NN('Brugge', 50)
-# name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
+ame_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan', 'big_graph']
 
-node_expansions_vs_stretch('Brugge', 150, 10)    
+node_expansions_vs_stretch('big_graph', 150, 8)    
 
 """
 name_list = ['Brugge']
 for name in name_list:
-    
+    print(name)
     make_graphs_logistic(name, 150, 15, cutoff=True)
-
-
 """
+
+
+
 
 
 

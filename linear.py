@@ -103,7 +103,7 @@ def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False, extr
 def output_function(weights, vals):
     return np.sum(weights * vals)
 
-def priority_queue_new_evaluation_function(id1, id2, graph, weight_function, ratio_travelled=False, return_counter=False): # id1 is start node id2 is go to node
+def priority_queue_new_evaluation_function(id1, id2, graph, weight_function, ratio_travelled=False, return_counter=False, return_visited=False): # id1 is start node id2 is go to node
     inf = np.inf
     # heuristic function 
     total_nodes = graph.nodes()
@@ -131,10 +131,12 @@ def priority_queue_new_evaluation_function(id1, id2, graph, weight_function, rat
     while priority_queue.empty() is False:
         _ , current_node = priority_queue.get() # first attribute is the weight
     
-        #if current_node in visited: # don't want to visit same node twice
-            #continue
+        if current_node in visited: # DEES WERD AANGEPAST 
+            continue
         
         if current_node == id2:
+            if return_visited is True:
+                return visited, came_from
             
             if ratio_travelled is False:
                 

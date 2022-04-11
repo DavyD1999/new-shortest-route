@@ -56,7 +56,7 @@ def dijkstra_with_priority_queue(id1, graph):
 # do timing to compare with dijkstra
 
 
-def dijkstra_with_priority_queue_to_node(id1, id2, graph):
+def dijkstra_with_priority_queue_to_node(id1, id2, graph, return_visited=False):
     """
     function that calculates the time from node_id1 first argument to noide_id2 other nodes given graph
     """
@@ -66,6 +66,7 @@ def dijkstra_with_priority_queue_to_node(id1, id2, graph):
     
     time_queue = PriorityQueue()
     times = dict()
+    came_from = dict()
     
     for node_id in unvisited_nodes:
       if node_id != id1:
@@ -85,6 +86,7 @@ def dijkstra_with_priority_queue_to_node(id1, id2, graph):
           new_weight = edge_weight +  times[current_node]
           if times[neighbor_node] > new_weight:
             times[neighbor_node] = new_weight
+            came_from[neighbor_node] = current_node
             time_queue.put((new_weight, neighbor_node))           
       
         visited_nodes.add(current_node)
@@ -98,6 +100,8 @@ def dijkstra_with_priority_queue_to_node(id1, id2, graph):
             #print('some roads have no connection')
             break
 
+    if return_visited is True:
+        return visited_nodes, came_from
     return times[id2]
 
 #print(dijkstra_with_priority_queue_to_node(9121386338,1692433918, graph_basic))
