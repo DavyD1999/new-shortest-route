@@ -16,6 +16,7 @@ import gravity_pressure as gp
 import a_star
 import NN_gravity_pressure as NNgp
 from gensim.models import KeyedVectors
+import pickle
 
 
 import stratified_sampling as ss
@@ -31,6 +32,11 @@ mpl.rc('font', **font)
 """
 generates stretch and arrival percentage histograms for the desired function
 """
+def add_coordinates(graph, dictionary):
+    for node in graph.nodes():
+        graph.add_node(node, coordinates=np.array(dictionary[node]))
+
+    return graph
 
 def data_generator(name, functions, foldername, number_of_routes_pre_compute=80, step_size=150, amount_of_samples_per_bin=50): # generates the data for the desired function
 
@@ -126,7 +132,10 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
         
     elif foldername[x] == 'semester1/greedy_spring':
       
-      graph_spring = nf.spring(graph) 
+      with open(f'./semester2/springlayout/Brugge_9.pickle', 'rb') as handle:
+        coor_dict = pickle.load(handle)
+
+      graph_spring = add_coordinates(graph, coor_dict)
       print('gespringed')
 
       for i in range(number_of_routes): # do the greedy functions
@@ -274,6 +283,7 @@ name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 
 #functions = [hr.hyperbolic_greedy_forwarding]
 #functions = [a_star.A_star_priority_queue]
+name_list = ['Brugge']
 
 functions = [gf.greedy_forwarding]
 

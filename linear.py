@@ -84,7 +84,7 @@ def add_amount_of_visited_weights(graph, number_of_landmarks, cutoff=False, extr
     x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x_list, y_list, test_size=0.25, random_state=42, shuffle=True)
     
     # linear_regression = sklearn.svm.SVR(kernel='poly',max_iter = 5000, verbose=False)
-    linear_regression =  sklearn.linear_model.Ridge() 
+    linear_regression =  sklearn.linear_model.Ridge(alpha=1.0) 
     
     x_train = np.array(x_train)
     y_train = np.array(y_train)

@@ -66,13 +66,13 @@ def plot(visited, start, end, graph, path, name):
         
         elif node in visited:
             node_size_expanded.append(6)
-            color_expanded.append('c')
-            alpha_expanded.append(0.2)
+            color_expanded.append('k')
+            alpha_expanded.append(0.8)
             node_list_expanded.append(node)
             
         else:
             node_size_rest.append(2)
-            color_rest.append('k')
+            color_rest.append('b')
             alpha_rest.append(0.15)
             node_list_rest.append(node)
 
@@ -108,9 +108,14 @@ clf = linear.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_
 for node in graph.nodes():
     new_coordinates[node] = np.array([graph.nodes[node]['x'], graph.nodes[node]['y']])
 
+
+visited, came_from = a_star.A_star_priority_queue(start_nodes[0], end_nodes[0], graph, max_velocity-11, return_counter=False, return_visited=True)
+path = return_path(start_nodes[0], end_nodes[0], came_from)
+plot(visited, start_nodes[0], end_nodes[0], graph, path ,f'a*_minus_11{city}')
+
 visited, came_from = a_star.A_star_priority_queue(start_nodes[0], end_nodes[0], graph, max_velocity, return_counter=False, return_visited=True)
 path = return_path(start_nodes[0], end_nodes[0], came_from)
-plot(visited, start_nodes[0], end_nodes[0], graph, path ,f'a*_{city}')
+plot(visited, start_nodes[0], end_nodes[0], graph, path ,f'a*_max_vel{city}')
 
 visited, came_from = dijkstra_with_priority_que.dijkstra_with_priority_queue_to_node(start_nodes[0], end_nodes[0], graph, return_visited=True)
 path = return_path(start_nodes[0], end_nodes[0], came_from)

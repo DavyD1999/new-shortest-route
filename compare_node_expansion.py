@@ -140,7 +140,7 @@ def make_graphs_NN(city, number_of_paths):
     print(time_normal/number_of_paths)
     print(time_NN/number_of_paths)    
 
-def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=False):
+def make_graphs_logistic(city, number_of_paths, number_of_landmarks, correction, cutoff=False):
 
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
     
@@ -159,11 +159,12 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     time_normal = 0
     time_ML = 0
 
-    average_vel = get_weigted_average_velocity(graph) -20
+    average_vel = get_weigted_average_velocity(graph) - correction
+    print(average_vel)
     max_velocity = fix_graph_data.get_max_velocity(graph) # gets the max velocity of all edges, useful for A*
-
+    start_time = time.time()
     clf = linear.add_amount_of_visited_weights(graph, number_of_landmarks=number_of_landmarks, cutoff=cutoff)
-    
+    print(time.time()-start_time)
     for i in range(len(start_nodes)):
 
         start_time = time.time()
@@ -189,14 +190,15 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     
         print(i)
     
-    xvals_astar, average_stretch_astar, standard_dev_on_mean_stretch_astar = prepare_plot_errorbar(len_astar, weight_path,  binsize=150)                                    
+    xvals_astar, average_stretch_astar, standard_dev_on_mean_stretch_astar = prepare_plot_errorbar(len_astar, weight_path,  binsize=150)    
+    print(np.nanmean(average_stretch_astar))
     plt.ylabel('Gemiddelde rek')
     plt.xlabel('Snelste reistijd (s)')
     plt.errorbar(xvals_astar, average_stretch_astar, yerr=standard_dev_on_mean_stretch_astar, linewidth=3, elinewidth=3, linestyle='--', capsize=5,barsabove=True, label='Hemelsbrede afstand met snelheid')
     
     
     xvals_ML, average_stretch_ML, standard_dev_on_mean_stretchML = prepare_plot_errorbar(len_ML, weight_path,  binsize=150)                                    
-    
+    print(np.nanmean(average_stretch_ML))
     plt.errorbar(xvals_ML, average_stretch_ML, yerr=standard_dev_on_mean_stretchML, linewidth=3,elinewidth=3, linestyle='-', capsize=5,barsabove=True, label='ML')
     plt.legend()
     plt.savefig(f'./semester2/ML_files/rek_ML_{city}.png', bbox_inches="tight")
@@ -220,19 +222,57 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, cutoff=Fals
     plt.savefig(f'./semester2/ML_files/aantal_expansies_ML_{city}.png', bbox_inches="tight")
     plt.clf()
 
-    #y_pos = np.arange(3) # 2 timings
+    y_pos = np.arange(3) # 2 timings
 
-    #plt.barh(y_pos,[time_max_vel/number_of_paths, time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
-    #plt.yticks(y_pos, labels=['Consistente A*','A* met gewogen gemiddelde', 'Lineaire regressie'])
-    y_pos = np.arange(2)
-    plt.barh(y_pos,[time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
-    plt.yticks(y_pos, labels=['A* met gewogen gemiddelde', 'Lineaire regressie'])
+    plt.barh(y_pos,[time_max_vel/number_of_paths, time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
+    plt.yticks(y_pos, labels=['Consistente A*','Niet-consistente A*', 'Lineaire regressie'])
+    #y_pos = np.arange(2)
+    #plt.barh(y_pos,[time_normal/number_of_paths, time_ML/number_of_paths], align = 'center')
+    #plt.yticks(y_pos, labels=['A* met gewogen gemiddelde', 'Lineaire regressie'])
     
     plt.yticks(rotation = 25)
-    plt.xlabel('Uitvoeringstijd (s)')
+    plt.xlabel('Uitvoeringstijd per pad (s)')
     plt.xscale('log')
     plt.savefig(f'./semester2/ML_files/timing_{city}.png', bbox_inches="tight")
     plt.clf()
+
+    values, base = np.histogram(weight_path, bins=np.arange(start=0,stop=max(weight_path) + 150, step=150))
+    indices = np.digitize(weight_path, base) - 1
+
+    n = np.zeros(len(values))
+    expansions_a_star = np.zeros(len(values))
+    for k, geteld in enumerate(teller_astar_list):
+        expansions_a_star[indices[k]] += geteld  
+        n[indices[k]] += 1
+
+    average_expansions_a = expansions_a_star / n
+
+    plt.hist(base[:-1], base, weights=average_expansions_a) 
+    plt.xlabel('Snelste reistijd (s)')
+    plt.ylabel('Gemiddeld aantal expansies')
+    #plt.title(f'{name} arrival ratio')
+    plt.savefig(f'./semester2/ML_files/A_star_expansions_path_length_{city}.png', bbox_inches='tight')
+    plt.clf() 
+
+    expansions_ML = np.zeros(len(values))
+    n = np.zeros(len(values))
+    
+    for k, geteld in enumerate(teller_ML):
+        expansions_ML[indices[k]] += geteld  
+        n[indices[k]] += 1
+
+    average_expansions_ml = expansions_ML/n
+
+    plt.hist(base[:-1], base, weights=average_expansions_ml) 
+    plt.xlabel('Snelste reistijd (s)')
+    plt.ylabel('Gemiddeld aantal expansies')
+    #plt.title(f'{name} arrival ratio')
+    plt.savefig(f'./semester2/ML_files/ML_expansions_path_length_{city}.png', bbox_inches='tight')
+    plt.clf() 
+
+    
+
+    
     
     print(time_normal/number_of_paths)
     print(time_ML/number_of_paths)
@@ -323,24 +363,21 @@ def node_expansions_vs_stretch(city, number_of_paths, number_of_landmarks, cutof
             length.append(b[0])
             teller.append(b[2])
 
-            
-
         length = np.array(length) / weight_path
-        length = np.mean(length)
-        teller = np.mean(np.array(teller))
+        length = np.nanmean(length)
+        teller = np.nanmean(np.array(teller))
 
         x_list_linear.append(length)
         y_list_linear.append(teller)
         
-
     print(x_list)
     print(y_list)
 
     
-    plt.scatter(x_list, y_list, label='Normale A*')
-    plt.scatter(x_list_linear, y_list_linear, marker='+', label='ML')
+    plt.scatter(x_list, y_list, label='A*')
+    plt.scatter(x_list_linear, y_list_linear, marker='+', label='Lineaire regressie')
     plt.xlim(left=0.95)
-    plt.xlabel('Rek')
+    plt.xlabel('Gemiddelde rek')
     plt.ylabel('Gemiddeld aantal node expansies')
     plt.yscale('log')
     plt.legend()
@@ -351,10 +388,10 @@ def node_expansions_vs_stretch(city, number_of_paths, number_of_landmarks, cutof
     
        
 # make_graphs_NN('Brugge', 50)
-ame_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan', 'big_graph']
+name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan', 'big_graph']
 
-node_expansions_vs_stretch('big_graph', 150, 8)    
-
+# node_expansions_vs_stretch('big_graph', 150, 8)    
+make_graphs_logistic('Brugge', 150, 15, correction=15,cutoff=True) #15,15 brugge en 8,11 brussel
 """
 name_list = ['Brugge']
 for name in name_list:
