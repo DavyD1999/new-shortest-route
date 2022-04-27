@@ -33,6 +33,18 @@ mpl.rc('font', **font)
 generates stretch and arrival percentage histograms for the desired function
 """
 def add_coordinates(graph, dictionary):
+    fig, ax = plt.subplots()
+
+    nx.draw_networkx_nodes(graph, dictionary, node_size=1, ax=ax)  # new layout specifies positions
+
+        # labels = nx.get_edge_attributes(graph, 'travel_time')
+    nx.draw_networkx_edges(graph, pos=dictionary, width=0.5, node_size=0.1)
+    #nx.draw_networkx_edge_labels(graph, pos=new_coordinates, edge_labels=labels, label_pos=0.5, font_size=3)
+    ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+
+    plt.savefig('./semester2/convex.png', dpi=500)
+    ax.clear()
+    plt.clf()
     for node in graph.nodes():
         graph.add_node(node, coordinates=np.array(dictionary[node]))
 
@@ -132,11 +144,10 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
         
     elif foldername[x] == 'semester1/greedy_spring':
       
-      with open(f'./semester2/springlayout/Brugge_9.pickle', 'rb') as handle:
+      with open(f'./semester2/convex/gespringed_travel_time_{name}.pickle', 'rb') as handle:
         coor_dict = pickle.load(handle)
-
       graph_spring = add_coordinates(graph, coor_dict)
-      print('gespringed')
+
 
       for i in range(number_of_routes): # do the greedy functions
         start_time = time.time()
