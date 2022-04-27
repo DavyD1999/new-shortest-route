@@ -64,7 +64,8 @@ def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coord
 
 
     for r, current_node in enumerate(node_list):
-        print(r)
+        if r % 50 == 0:
+            print(r)
         repulsion_force_now = 0  # keep track of the repulsion force felt by this node
         coor_current = new_coordinates[current_node]
 
@@ -146,27 +147,27 @@ def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coord
                         break
                     
 
-                if check_set == set():
-                    print('eens geslaagd!!!!!!!!!!')
-                    update_dict[current_node] = np.array([x_new, y_new])
-                else:
-                    print('weer gefaald')
+                if check_set == set():   # only change if solved
+                    new_coordinates[current_node] = np.array([x_new, y_new])
+                    
             else:    
-                if not check_set.issubset(conflict_dict[current_node]):
-                    for conflictor in check_set:
-                        intruder = index_list[conflictor]
-                        coor_intruder = new_coordinates[intruder]
-        
-                        substract = coor_current - coor_intruder
-                        unit_vector = (substract) / np.linalg.norm(substract)
-                        repulsion_force_now += delta * unit_vector
-        
-                    conflict_dict[current_node] = set.union(check_set, conflict_dict[
-                        current_node])  # update the set of conflict, just add new ones
+                #if not check_set.issubset(conflict_dict[current_node]):
+                for conflictor in check_set:
+                    intruder = index_list[conflictor]
+                    coor_intruder = new_coordinates[intruder]
+    
+                    substract = coor_current - coor_intruder
+                    unit_vector = (substract) / np.linalg.norm(substract)
+                    repulsion_force_now += delta * unit_vector
+    
+                conflict_dict[current_node] = set.union(check_set, conflict_dict[
+                    current_node])  # update the set of conflict, just add new ones
+
         else:
             repulsion_force_now = 0
 
         repulsion_force[current_node] = repulsion_force_now
+
 
 
 def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQUES FOR GEOGRAPHIC ROUTING PHD PAPER
@@ -192,7 +193,7 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
         xdif = maxx - minx
         ydif = maxy - miny
         for node in graph.nodes():
-            new_coordinates[node] = np.array([(graph.nodes[node]['x']-minx)/xdif, (graph.nodes[node]['y']-miny)/ydif])*20
+            new_coordinates[node] = np.array([(graph.nodes[node]['x']-minx)/xdif, (graph.nodes[node]['y']-miny)/ydif]) * 20 
 
     else:
         print('geladen')
@@ -206,7 +207,7 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
     node_list = list(graph.nodes())
 
     for i in range(0,100,2):
-        result, ratio_travelled = gf.greedy_forwarding(node_list[i], node_list[i+1], graph_spring, distance_function=cf.euclidian_n_dimensions ,ratio_travelled=True)
+        result, ratio_travelled = gf.greedy_forwarding(node_list[i], node_list[10*i], graph_spring, distance_function=cf.euclidian_n_dimensions ,ratio_travelled=True)
         if result < np.inf:
             tot_aangekomen += 1
 
@@ -221,11 +222,11 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
         pickle.dump(new_coordinates, handle, protocol=pickle.HIGHEST_PROTOCOL) 
     """
 
-    kappa = 0.005
-    delta = 0.0005
-    R_max = 10
-    alpha_max = 0.5
-    T = 900
+    kappa = 0.0005 * 10
+    delta = 0.0005 * 10
+    R_max = delta * 20
+    alpha_max = 10 * kappa
+    T = 100
 
     fig, ax = plt.subplots()
 
@@ -293,11 +294,9 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
             force_on_i = force_ij(coordinate_i, coordinate_j, graph[node1][node2]['rest_length'], kappa)
             force_on_j = - force_on_i  # look it's newton
 
-            force_dict[node1] += force_on_i
-            force_dict[node2] += force_on_j
+            force_dict[node1] += 0.0000001#force_on_i
+            force_dict[node2] += 0.0000001 #force_on_j
         
-        node_list = list(graph.nodes())
-
         
         with mp.Manager() as manager:  # multiprocessing step
             conflict_dict = manager.dict(conflict_dict)
@@ -328,9 +327,8 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
             conflict_dict = dict(conflict_dict)
             repulsion_force = dict(repulsion_force)
-            update_dict = dict(update_dict)
-                
-
+            update_dict = dict(update_dict)        
+        
         if i > T:
             alpha_now = alpha_max * np.exp(-i / T)  # hysteresis
         else:
@@ -350,7 +348,7 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
                         repulsion_force[node] = min(np.linalg.norm(repulsion), R_max) / np.linalg.norm(repulsion) * repulsion
                 else:
                     repulsion_force[node] = 0
-    
+
                 new_coordinates[node] += min(np.linalg.norm(force_dict[node] + repulsion_force[node]),
                                              alpha_now) / np.linalg.norm(force_dict[node] + repulsion_force[node]) * (
                                                      force_dict[node] + repulsion_force[node])
@@ -376,7 +374,7 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
         tot_aangekomen = 0
 
         for i in range(0,100,2):
-            result, ratio_travelled = gf.greedy_forwarding(node_list[i], node_list[i+1], graph_spring, distance_function=cf.euclidian_n_dimensions ,ratio_travelled=True)
+            result, ratio_travelled = gf.greedy_forwarding(node_list[i], node_list[10*i], graph_spring, distance_function=cf.euclidian_n_dimensions ,ratio_travelled=True)
             if result < np.inf:
                 tot_aangekomen += 1
 
