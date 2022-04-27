@@ -7,6 +7,16 @@ import time
 import pickle
 import multiprocessing as mp
 import random
+import greedy_forwarding_route as gf
+import coordinate_functions as cf
+
+
+def add_coordinates(graph, dictionary):
+    
+    for node in graph.nodes():
+        graph.add_node(node, coordinates=np.array(dictionary[node]))
+
+    return graph
 
 def force_ij(xi, xj, lij, kappa):
     return kappa * (lij - np.linalg.norm(xi - xj)) * (xi - xj) / (np.linalg.norm(xi - xj) + 0.00001)
@@ -48,20 +58,6 @@ def solve(x_new, y_new, neighbors, check_set ,new_coordinates, index_list):
 infinite_edges = [[-10000, -10000], [0, -10000], [10000, -10000], [-10000, 0], [-10000, 10000], [10000, 10000],
                   [10000, 0], [0, 10000]]
 
-"""
-long = np.arange(-10000, 10010, 10)
-steady = np.ones_like(long) * 10000
-
-a1 = list(np.stack((long,steady), axis=1))
-a2 = list(np.stack((long,steady * -1), axis=1))
-a3 = list(np.stack((steady, long), axis=1))
-a4 = list(np.stack((steady * -1, long), axis=1))
-
-infinite_edges += a1
-infinite_edges += a2
-infinite_edges += a3
-infinite_edges += a4
-"""
 
 
 def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coordinates, graph, kd, index_list, delta):
@@ -102,11 +98,13 @@ def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coord
 
                 check_set.add(ix)
 
-        if check_set != set():# TOO FIX
-            if random.uniform(0.0,1.0) < 1:
+        if check_set != set():
+            if random.uniform(0.0,1.0) < 0.1:
                 start = True
                 previous_set = set()
-                while len(check_set) < len(previous_set) or start is True:  # as long as we keep decreasing the number of nodes in the conflict set keep going
+                iters = 0
+                repulsion_force_now = 0
+                while len(check_set) < len(previous_set) or start is True :  # as long as we keep decreasing the number of nodes in the conflict set keep going
                     
                     previous_set = set(check_set)
                     if start is True:
@@ -124,10 +122,7 @@ def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coord
 
                     if pol.contains(Point(coor_chosen)):
 
-                        print(pol.contains(Point([x_new, y_new])))
-                        print([x_new, y_new] in coor_list)
                         print('oei dit punt ligt er nog steeds in')
-
 
                     possibly_inside = kd.query_ball_point(pol.centroid,r=pol.centroid.hausdorff_distance(pol))  # get only nodes within this ball
 
@@ -145,7 +140,9 @@ def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coord
                         elif pol.contains(Point(coor_intruder)) is True:
             
                             check_set.add(ix)
-                    if check_set == set():
+
+                    iters += 1
+                    if check_set == set() or iters > 5:
                         break
                     
 
@@ -155,16 +152,17 @@ def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coord
                 else:
                     print('weer gefaald')
             else:    
-                for conflictor in check_set:
-                    intruder = index_list[conflictor]
-                    coor_intruder = new_coordinates[intruder]
-    
-                    substract = coor_current - coor_intruder
-                    unit_vector = (substract) / np.linalg.norm(substract)
-                    repulsion_force_now += delta * unit_vector
-    
-                conflict_dict[current_node] = set.union(check_set, conflict_dict[
-                    current_node])  # update the set of conflict, just add new ones
+                if not check_set.issubset(conflict_dict[current_node]):
+                    for conflictor in check_set:
+                        intruder = index_list[conflictor]
+                        coor_intruder = new_coordinates[intruder]
+        
+                        substract = coor_current - coor_intruder
+                        unit_vector = (substract) / np.linalg.norm(substract)
+                        repulsion_force_now += delta * unit_vector
+        
+                    conflict_dict[current_node] = set.union(check_set, conflict_dict[
+                        current_node])  # update the set of conflict, just add new ones
         else:
             repulsion_force_now = 0
 
@@ -178,13 +176,41 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
     new_coordinates = dict()
 
     if coor_dict is False:
+        x_list = list()
+        y_list = list()
+
+        for node in graph.nodes(): # normalize data and multiply with 20 so good enough for voronoi region of ownership
+            x_list.append(graph.nodes[node]['x'])
+            y_list.append(graph.nodes[node]['y'])
+
+        minx = min(x_list)
+        maxx = max(x_list)
+
+        miny = min(y_list)
+        maxy = max(y_list)
+
+        xdif = maxx - minx
+        ydif = maxy - miny
         for node in graph.nodes():
-            new_coordinates[node] = np.array([graph.nodes[node]['x']-3.21, graph.nodes[node]['y']-51.20])*1000
+            new_coordinates[node] = np.array([(graph.nodes[node]['x']-minx)/xdif, (graph.nodes[node]['y']-miny)/ydif])*20
+
     else:
         print('geladen')
         new_coordinates = coor_dict
     # for each node we will now add the percentage of common neighbors this way we don't have to calculate this every time we will just keep this in a seperate dictionary
 
+    graph_spring = add_coordinates(graph, new_coordinates)
+
+    tot_aangekomen = 0
+
+    node_list = list(graph.nodes())
+
+    for i in range(0,100,2):
+        result, ratio_travelled = gf.greedy_forwarding(node_list[i], node_list[i+1], graph_spring, distance_function=cf.euclidian_n_dimensions ,ratio_travelled=True)
+        if result < np.inf:
+            tot_aangekomen += 1
+
+    print(f'er is zoveel aangekomen {tot_aangekomen}')
     l_min_prop = np.inf
     l_max_prop = - np.inf
 
@@ -195,11 +221,10 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
         pickle.dump(new_coordinates, handle, protocol=pickle.HIGHEST_PROTOCOL) 
     """
 
-
-    kappa = 0.05
+    kappa = 0.005
     delta = 0.0005
     R_max = 10
-    alpha_max = 0.005
+    alpha_max = 0.5
     T = 900
 
     fig, ax = plt.subplots()
@@ -225,6 +250,7 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
         if dist < l_min_prop:
             l_min_prop = dist
+            
 
 
     for node1, node2, travel_time in graph.edges(data='travel_time'):
@@ -269,7 +295,7 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
             force_dict[node1] += force_on_i
             force_dict[node2] += force_on_j
-
+        
         node_list = list(graph.nodes())
 
         
@@ -312,20 +338,22 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
         for node in graph.nodes():
             if node in update_dict:
+                print(len(update_dict))
                 new_coordinates[node] = update_dict[node]
-
-            elif node in repulsion_force:
-                repulsion = delta * repulsion_force[node]
-                if np.linalg.norm(repulsion) == 0:
-                    repulsion_force[node] == repulsion
-                else:
-                    repulsion_force[node] = min(np.linalg.norm(repulsion), R_max) / np.linalg.norm(repulsion) * repulsion
+            
             else:
-                repulsion_force[node] = 0
-
-            new_coordinates[node] += min(np.linalg.norm(force_dict[node] + repulsion_force[node]),
-                                         alpha_now) / np.linalg.norm(force_dict[node] + repulsion_force[node]) * (
-                                                 force_dict[node] + repulsion_force[node])
+                if node in repulsion_force:
+                    repulsion = delta * repulsion_force[node]
+                    if np.linalg.norm(repulsion) == 0:
+                        repulsion_force[node] == repulsion
+                    else:
+                        repulsion_force[node] = min(np.linalg.norm(repulsion), R_max) / np.linalg.norm(repulsion) * repulsion
+                else:
+                    repulsion_force[node] = 0
+    
+                new_coordinates[node] += min(np.linalg.norm(force_dict[node] + repulsion_force[node]),
+                                             alpha_now) / np.linalg.norm(force_dict[node] + repulsion_force[node]) * (
+                                                     force_dict[node] + repulsion_force[node])
 
         print(f' iteratie {i}')
         fig, ax = plt.subplots()
@@ -341,15 +369,22 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
         ax.clear()
         plt.clf()
 
+        
+
+        graph_spring = add_coordinates(graph, new_coordinates)
+
+        tot_aangekomen = 0
+
+        for i in range(0,100,2):
+            result, ratio_travelled = gf.greedy_forwarding(node_list[i], node_list[i+1], graph_spring, distance_function=cf.euclidian_n_dimensions ,ratio_travelled=True)
+            if result < np.inf:
+                tot_aangekomen += 1
+
+        print(f'er is zoveel aangekomen {tot_aangekomen}')
+
         with open(f'./semester2/super lange simulatie.pickle', 'wb') as handle:
             pickle.dump(new_coordinates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-
-def add_coordinates(graph, dictionary):
-    for node in graph.nodes():
-        graph.add_node(node, coordinates=np.array(dictionary[node]))
-
-    return graph
 
 """
 graph = nx.Graph()
