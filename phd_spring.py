@@ -10,6 +10,8 @@ import random
 import greedy_forwarding_route as gf
 import coordinate_functions as cf
 
+random.seed(42)
+np.random.seed(42)
 
 def add_coordinates(graph, dictionary):
     
@@ -60,7 +62,7 @@ infinite_edges = [[-10000, -10000], [0, -10000], [10000, -10000], [-10000, 0], [
 
 
 
-def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coordinates, graph, kd, index_list, delta):
+def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coordinates, graph, kd, index_list, delta, num):
 
 
     for r, current_node in enumerate(node_list):
@@ -96,9 +98,9 @@ def calc_force(update_dict, conflict_dict, repulsion_force, node_list, new_coord
                 continue
 
             elif pol.contains(Point(coor_intruder)) is True:
-
+                num.value += 1
                 check_set.add(ix)
-
+        
         if check_set != set():
             if random.uniform(0.0,1.0) < 0.1:
                 start = True
@@ -174,9 +176,10 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
 
-    new_coordinates = dict()
+    
 
     if coor_dict is False:
+        new_coordinates = dict()
         x_list = list()
         y_list = list()
 
@@ -197,7 +200,12 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
     else:
         print('geladen')
+        x_list = list()
+        y_list = list()
+        
         new_coordinates = coor_dict
+ 
+        
     # for each node we will now add the percentage of common neighbors this way we don't have to calculate this every time we will just keep this in a seperate dictionary
 
     graph_spring = add_coordinates(graph, new_coordinates)
@@ -222,8 +230,8 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
         pickle.dump(new_coordinates, handle, protocol=pickle.HIGHEST_PROTOCOL) 
     """
 
-    kappa = 0.0005 * 10
-    delta = 0.0005 * 10
+    kappa = 0.0005 * 10 
+    delta = 0.0005 * 10 
     R_max = delta * 20
     alpha_max = 10 * kappa
     T = 100
@@ -231,7 +239,6 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
     fig, ax = plt.subplots()
 
     nx.draw_networkx_nodes(graph, new_coordinates, node_size=1) # new layout specifies positions
-
 
 
     nx.draw_networkx_edges(graph, pos=new_coordinates, edgelist=None, width=0.5, node_size=1)
@@ -252,8 +259,6 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
         if dist < l_min_prop:
             l_min_prop = dist
             
-
-
     for node1, node2, travel_time in graph.edges(data='travel_time'):
         si = set(nx.neighbors(graph, node1))
         sj = set(nx.neighbors(graph, node2))
@@ -264,8 +269,8 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
         rij = len(sij) / (len(sij) + len(si) + len(sj))
 
-        lmin = l_min_prop / 1.3
-        lmax = l_max_prop * 1.3
+        lmin = l_min_prop / 10
+        lmax = l_max_prop 
 
         graph[node1][node2]['rest_length'] = lmin + (1 - rij) * (lmax - lmin)
 
@@ -294,26 +299,27 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
             force_on_i = force_ij(coordinate_i, coordinate_j, graph[node1][node2]['rest_length'], kappa)
             force_on_j = - force_on_i  # look it's newton
 
-            force_dict[node1] += 0.0000001#force_on_i
-            force_dict[node2] += 0.0000001 #force_on_j
+            force_dict[node1] += 0.000000001
+            force_dict[node2] += 0.000000001
         
         
         with mp.Manager() as manager:  # multiprocessing step
             conflict_dict = manager.dict(conflict_dict)
             repulsion_force = manager.dict()
             update_dict = manager.dict()
+            num = manager.Value('d', 0.0)
 
             p1 = mp.Process(target=calc_force, args=(update_dict,
-                conflict_dict, repulsion_force, node_list[:len(node_list) // 4], new_coordinates, graph, kd, index_list, delta)) # VERGEET NIET TERUG TE ZETTEN NAAR JUISTE VORM
+                conflict_dict, repulsion_force, node_list[:len(node_list) // 4], new_coordinates, graph, kd, index_list, delta, num)) # VERGEET NIET TERUG TE ZETTEN NAAR JUISTE VORM
             p2 = mp.Process(target=calc_force, args=(update_dict,
                 conflict_dict, repulsion_force, node_list[len(node_list) // 4:2 * len(node_list) // 4], new_coordinates,
-                graph, kd, index_list, delta))
+                graph, kd, index_list, delta, num))
             p3 = mp.Process(target=calc_force, args=(update_dict,
                 conflict_dict, repulsion_force, node_list[2 * len(node_list) // 4:3 * len(node_list) // 4], new_coordinates,
-                graph, kd, index_list, delta))
+                graph, kd, index_list, delta, num))
             p4 = mp.Process(target=calc_force, args=(update_dict,
                 conflict_dict, repulsion_force, node_list[3 * len(node_list) // 4:], new_coordinates, graph, kd,
-                index_list, delta))
+                index_list, delta, num))
 
             p1.start()
             p2.start()
@@ -327,7 +333,9 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
             conflict_dict = dict(conflict_dict)
             repulsion_force = dict(repulsion_force)
-            update_dict = dict(update_dict)        
+            update_dict = dict(update_dict)  
+
+            print(num)
         
         if i > T:
             alpha_now = alpha_max * np.exp(-i / T)  # hysteresis
@@ -353,6 +361,8 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
                                              alpha_now) / np.linalg.norm(force_dict[node] + repulsion_force[node]) * (
                                                      force_dict[node] + repulsion_force[node])
 
+        
+        assert 0 == 1
         print(f' iteratie {i}')
         fig, ax = plt.subplots()
 
@@ -380,7 +390,7 @@ def springen(city, iterations, start_number=0, coor_dict=False):  # NEW TECHNIQU
 
         print(f'er is zoveel aangekomen {tot_aangekomen}')
 
-        with open(f'./semester2/super lange simulatie.pickle', 'wb') as handle:
+        with open(f'./semester2/convex/super lange simulatie.pickle', 'wb') as handle:
             pickle.dump(new_coordinates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -396,8 +406,10 @@ graph.nodes[3]['x'] = 1.3
 graph.nodes[3]['y'] = 1.3
 
 """
+with open(f'./semester2/convex/nxspring.pickle', 'rb') as handle:
+    coor_dict = pickle.load(handle)
 
-springen('Brugge', 1000, coor_dict=False)
+springen('Brugge', 1000, coor_dict=coor_dict)
 
 
 

@@ -144,7 +144,7 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
         
     elif foldername[x] == 'semester1/greedy_spring':
       
-      with open(f'./semester2/convex/gespringed_travel_time_{name}.pickle', 'rb') as handle:
+      with open(f'./semester2/convex/nxspring.pickle', 'rb') as handle:
         coor_dict = pickle.load(handle)
       graph_spring = add_coordinates(graph, coor_dict)
 
