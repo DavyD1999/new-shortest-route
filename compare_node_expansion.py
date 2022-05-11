@@ -206,7 +206,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, correction,
     
     
     bins=np.histogram(np.hstack((teller_astar_list,teller_ML)), bins=15)[1] #get the bin edges
-    
+    plt.ylim([0,90])
     plt.hist(teller_astar_list, bins=bins)
     print(sum(teller_astar_list))
     plt.xlabel('Aantal node expansies')
@@ -216,6 +216,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, correction,
     plt.clf()
     
     plt.hist(teller_ML, bins=bins)
+    plt.ylim([0,85])
     print(sum(teller_ML))
     plt.xlabel('Aantal node expansies')
     plt.ylabel('Aantal in bin')
@@ -247,12 +248,7 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, correction,
 
     average_expansions_a = expansions_a_star / n
 
-    plt.hist(base[:-1], base, weights=average_expansions_a) 
-    plt.xlabel('Snelste reistijd (s)')
-    plt.ylabel('Gemiddeld aantal expansies')
-    #plt.title(f'{name} arrival ratio')
-    plt.savefig(f'./semester2/ML_files/A_star_expansions_path_length_{city}.png', bbox_inches='tight')
-    plt.clf() 
+    
 
     expansions_ML = np.zeros(len(values))
     n = np.zeros(len(values))
@@ -263,9 +259,18 @@ def make_graphs_logistic(city, number_of_paths, number_of_landmarks, correction,
 
     average_expansions_ml = expansions_ML/n
 
+    plt.hist(base[:-1], base, weights=average_expansions_a) 
+    plt.ylim([0,max([max(average_expansions_a), max(average_expansions_ml)])])
+    plt.xlabel('Snelste reistijd (s)')
+    plt.ylabel('Gemiddeld aantal expansies')
+    #plt.title(f'{name} arrival ratio')
+    plt.savefig(f'./semester2/ML_files/A_star_expansions_path_length_{city}.png', bbox_inches='tight')
+    plt.clf() 
+
     plt.hist(base[:-1], base, weights=average_expansions_ml) 
     plt.xlabel('Snelste reistijd (s)')
     plt.ylabel('Gemiddeld aantal expansies')
+    plt.ylim([0,max([max(average_expansions_a), max(average_expansions_ml)])])
     #plt.title(f'{name} arrival ratio')
     plt.savefig(f'./semester2/ML_files/ML_expansions_path_length_{city}.png', bbox_inches='tight')
     plt.clf() 

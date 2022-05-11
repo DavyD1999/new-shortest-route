@@ -143,6 +143,8 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
           
         
     elif foldername[x] == 'semester1/greedy_spring':
+      print(graph.number_of_edges())
+      print(graph.number_of_nodes())
       
       with open(f'./semester2/convex/nxspring.pickle', 'rb') as handle:
         coor_dict = pickle.load(handle)
@@ -275,10 +277,12 @@ def data_generator(name, functions, foldername, number_of_routes_pre_compute=80,
 
   plt.barh(foldernames, timing_array)
   x = np.arange(len(foldernames))
-  plt.yticks(x, ['gp met nieuw gewicht','normaal', 'gravity pressure', 'gretig dan A*', 'rpf', 'manhattan','hyperbolisch'], fontsize='13', rotation=0)
+  #plt.yticks(x, ['hemelsbrede afstand','H+B', 'manhattan', 'RPF','gemodificeerde GSpring', 'gravity-pressure', 'niet-toelaatbare A*'], fontsize='13', rotation=0)
+  plt.yticks(x, ['gretig hyperbolisch', 'gravity-pressure', 'niet-toelaatbare A*'], fontsize='13', rotation=0)
   #plt.title(f'{name} execution time per succesful path')
-  plt.xlabel('uitvoeringstijd per pad (s)')
+  plt.xlabel('gemiddelde uitvoeringstijd per pad (s)')
   plt.xscale('log')
+  plt.xlim([0.9*10**-3,10**-1])
   plt.savefig(f'./speed_comparison/{name} greedy_execution_time_per_path.png', bbox_inches='tight')
   plt.clf()
 
@@ -296,13 +300,14 @@ name_list = ['New Dehli','Brugge','Nairobi', 'Rio de Janeiro', 'Manhattan']
 #functions = [a_star.A_star_priority_queue]
 name_list = ['Brugge']
 
-functions = [gf.greedy_forwarding]
-
-foldernames = ['semester1/greedy_spring']
+#functions = [gf.greedy_forwarding, gfwe.greedy_forwarding_with_edge_weight, gm.manhattan_greedy_forwarding, grpf.greedy_forwarding_rpf,gf.greedy_forwarding,gp.gravity_pressure, a_star.A_star_priority_queue]
+functions = [hr.hyperbolic_greedy_forwarding,gp.gravity_pressure, a_star.A_star_priority_queue]
+#foldernames = ['semester1/normal_greedy','semester1/greedy_with_edge_weight','semester1/greedy_manhattan','semester1/greedy_rpf','semester1/greedy_spring','semester1/gravity_pressure', 'semester1/greedy_then_a_star']
 # foldernames = ['semester2/weighted_expansion', 'irrelevanat/', 'semester1/gravity_pressure', 'semester1/normal_greedy', 'semester1/greedy_then_a_star', 'semester1/greedy_rpf','semester1/greedy_manhattan','semester1/greedy_hyperbolic',] #, 'normal_greedy','greedy_with_edge_weight','greedy_then_a_star', 'greedy_rpf', 'greedy_manhattan', 'greedy_hyperbolic','gravity_pressure', 'greedy_hyperbolic']
 #'pure_A_star'
 #foldernames = ['pure_A_star']
 #foldernames = ['greedy_hyperbolic']
+foldernames = ['semester1/greedy_hyperbolic','semester1/gravity_pressure', 'semester1/greedy_then_a_star']
 
 for name in name_list:
   data_generator(name, functions, foldernames,number_of_routes_pre_compute=50, step_size=150, amount_of_samples_per_bin=50)

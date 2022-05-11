@@ -44,24 +44,6 @@ def euclid_distance(node_id1, node_id2, graph): #fine to use
   
   return factor*np.sqrt(a*a + b*b)
 
-
-
-def rpf_distance(current_node_id, go_to_node_id, destination_id, graph):
-  
-  u = np.array(get_coordinates(current_node_id, graph))
-  v = np.array(get_coordinates(go_to_node_id, graph))
-  d = np.array(get_coordinates(destination_id, graph))
-  
-  # calculate cos between ud and uv aka project our goto on the straight line between current and destination
-  c = np.linalg.norm(v-d)
-  a = np.linalg.norm(u-v)
-  b = np.linalg.norm(u-d)
-
-  cos_C = (a**2 + b**2 - c**2) / (2 * b * a)
-  return - a * cos_C # we select on the minimum in our greedy rpf function thus have a minus here on see yujuninfocom09 paper
-  # now use the cosine rule
-  
-
 def projector(tup): # uses mercator projection
   lat = tup[0]
   lon = tup[1]
@@ -73,6 +55,27 @@ def projector(tup): # uses mercator projection
   y = R * np.log(np.tan(pi_over_4 + lat / 2))
 
   return np.array((x, y))
+
+def rpf_distance(current_node_id, go_to_node_id, destination_id, graph):
+  
+  u = np.array(get_coordinates(current_node_id, graph))
+  u = projector(u)
+  v = np.array(get_coordinates(go_to_node_id, graph))
+  v = projector(v)
+  d = np.array(get_coordinates(destination_id, graph))
+  d = projector(d)
+
+  # calculate cos between ud and uv aka project our goto on the straight line between current and destination
+  c = np.linalg.norm(v-d)
+  a = np.linalg.norm(u-v)
+  b = np.linalg.norm(u-d)
+
+  cos_C = (a**2 + b**2 - c**2) / (2 * b * a)
+  return - a * cos_C # we select on the minimum in our greedy rpf function thus have a minus here on see yujuninfocom09 paper
+  # now use the cosine rule
+  
+
+
 
 def distance_hyperbolic(z1, z2): # give two coordinates here
 
@@ -92,9 +95,9 @@ def distance_hyperbolic(z1, z2): # give two coordinates here
 	#return np.arctanh(abs((z2-z1)/(1-z1.conjugate()*z2))) # p.368 Geometry SECOND EDITION D AV I D A . B R A N N A N M AT T H E W F. E S P L E N J E R E M Y J . G R AY
 
 def distance_manhattan(node_id1, node_id2, graph):
-    y1, x1 = get_coordinates(node_id1, graph)
-    y2, x2 = get_coordinates(node_id2, graph)
-    
+    y1, x1 = projector(get_coordinates(node_id1, graph))
+    y2, x2 = projector(get_coordinates(node_id2, graph))
+
     return abs(y1-y2) + abs(x1-x2)
 
 def get_coordinate_array(node_id, graph):

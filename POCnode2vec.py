@@ -79,7 +79,7 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
             distances, _ = nx.single_source_dijkstra(graph, landmark, weight='travel_time') # no need for storing paths
         distance_list_training.append(distances)
                         
-    """
+    
     if recalculate_weights is True:        
         multi_graph = nx.MultiGraph(graph)
         # edge_color = ox.plot.get_edge_colors_by_attr(multi_graph, 'transition_probability') # uses attribute to show how big transition probability
@@ -89,11 +89,12 @@ def calculate_shortest_path(graph, amount_of_landmarks_training, amount_of_landm
         ec = [mapper.to_rgba(data['transition_probability']) for u, v, key, data in multi_graph.edges(keys=True, data=True)]
         fig, ax = ox.plot.plot_graph(multi_graph,node_size=0, show=False ,edge_color=ec, save=False)
         #ax.set_facecolor('w')
-        cb = fig.colorbar(mapper, ax=ax, orientation='horizontal')
+        cb = fig.colorbar(mapper, fraction=0.042, pad=0.08, orientation='horizontal')
+
         cb.set_label('Booggewichten', fontsize = 20)
-        fig.savefig('./New Dehli.png',dpi=500)
-    """                    
-    
+        fig.savefig('./Brugge.png',dpi=500)
+                       
+    assert 0 == 1
     gc.collect()
     
     distance_list_test = list()
@@ -267,7 +268,7 @@ def train_network(city, inverse=False, create_model_now=False, recalculate_weigh
     """
     graph = nx.read_gpickle(f'./graph_pickle/{city}.gpickle')
     
-    samples = 200000 // (graph.number_of_nodes())
+    samples = 250000 // (graph.number_of_nodes())
     print(samples)
     landmark_list_training, distance_list_training, landmark_list_test, distance_list_test, landmark_list_validation, distance_list_validation = calculate_shortest_path(graph, samples, samples//5, samples//5, recalculate_weights=recalculate_weights) # 100 training 10 test cities
     
@@ -479,7 +480,7 @@ def train_network_CNN(city):
 #train_network_CNN('Manhattan')
 #evaluate_network_new_transformations('Brugge', 'Manhattan',add_distance=False)
 
-# train_network('Manhattan', inverse=True) # 10.16666030883789
+train_network('Brugge',create_model_now=True, recalculate_weights=True) # 10.16666030883789
 #train_network('Manhattan', inverse=False) #10.130
 #train_network('New Dehli', inverse=False, create_model_now=True, recalculate_weights=True, do_pca=True) #  9.8444824218
 #evaluate_network('Brugge', 'New Dehli', do_pca=True, create_model_now=True,  recalculate_weights=True)
